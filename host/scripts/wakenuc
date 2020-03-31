@@ -19,14 +19,14 @@ NUC_INDEX=$1
 
 # get Intel NUC info (MAC and IP address) from /etc/bootptab (if it exists)
 if [[ -f /etc/bootptab ]]; then
-  NUC_INFO=$(egrep "^mintnuc$NUC_INDEX" /etc/bootptab)
+  NUC_INFO=$(egrep "^nuc$NUC_INDEX" /etc/bootptab)
 
   if [[ ! -z "$NUC_INFO" ]]; then
     NUC_MAC=$(echo $NUC_INFO | awk '{print $3}')
     NUC_IP=$(echo $NUC_INFO | awk '{print $4}')
 
     if [[ -z "$NUC_MAC" || -z "$NUC_IP" ]]; then
-      echo "Can't determine MAC and/or IP address of Intel NUC mintnuc$NUC_INDEX. Aborting."
+      echo "Can't determine MAC and/or IP address of Intel NUC nuc$NUC_INDEX. Aborting."
       exit 1
     else
 
@@ -38,12 +38,12 @@ if [[ -f /etc/bootptab ]]; then
         wakenuc $NUC_MAC
         exit $?
       else
-        echo "Intel NUC mintnuc$NUC_INDEX is already online. Exiting."
+        echo "Intel NUC nuc$NUC_INDEX is already online. Exiting."
         exit 0
       fi
     fi
   else
-    echo "Intel NUC mintnuc$NUC_INDEX not found in /etc/bootptab. Aborting."
+    echo "Intel NUC nuc$NUC_INDEX not found in /etc/bootptab. Aborting."
     exit 1
   fi
 else

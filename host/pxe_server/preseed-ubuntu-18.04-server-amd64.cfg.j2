@@ -8,8 +8,15 @@ d-i debconf/priority select critical
 d-i debian-installer/language string en
 d-i debian-installer/country string DE
 d-i debian-installer/locale string en_US.UTF-8
+d-i localechooser/supported-locales multiselect en_US.UTF-8
+d-i pkgsel/install-language-support boolean true
 d-i console-setup/ask_detect boolean false
+d-i console-setup/layoutcode string de
+d-i keyboard-configuration/modelcode string pc105
+d-i keyboard-configuration/layoutcode string de
+d-i keyboard-configuration/variantcode string nodeadkeys
 d-i keyboard-configuration/xkb-keymap select de(nodeadkeys)
+d-i debconf/language string en_US:en
 
 ### Network configuration
 d-i netcfg/choose_interface select auto
@@ -34,46 +41,16 @@ d-i clock-setup/ntp boolean true
 ### Partitioning
 d-i partman-auto/disk string /dev/nvme0n1
 d-i partman-auto/method string lvm
+d-i partman-auto/cap-ram {{ ram_size }}
 d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-md/device_remove_md boolean true
 d-i partman-lvm/confirm boolean true
 d-i partman-lvm/confirm_nooverwrite boolean true
-
-# Physical partitions:
-# 1. BIOS boot partition: 1 MB
-# 2. Boot partition: 250 MB
-# 2. LVM, with the following logical volumes
-#     - Swap: 100% of RAM
-#     - Root partition: rest of space, ext4
-d-i partman-auto/expert_recipe string                         \
-      boot-root ::                                            \
-              1 1 1 free method{ biosgrub } .                 \
-              250 250 250 ext2                                \
-                      $primary{ } $bootable{ }                \
-                      method{ format } format{ }              \
-                      use_filesystem{ } filesystem{ ext2 }    \
-                      mountpoint{ /boot }                     \
-              .                                               \
-              100% 2048 100% linux-swap                       \
-                      lv_name{ swap }                         \
-                      method{ swap } format{ }                \
-                      $lvmok{ }                               \
-              .                                               \
-              256000 256000 256000 ext4                       \
-                      lv_name{ root }                         \
-                      method{ lvm } format{ }                 \
-                      use_filesystem{ } filesystem{ ext4 }    \
-                      mountpoint{ / }                         \
-                      $lvmok{ }                               \
-              .                                               \
-              1024 1024 -1 xfs                                \
-                      lv_name{ data }                         \
-                      method{ lvm } format{ }                 \
-                      use_filesystem{ } filesystem{ xfs }     \
-                      mountpoint{ /data }                     \
-                      $lvmok{ }                               \
-              .
+d-i partman-auto/purge_lvm_from_device boolean true
+d-i partman-basicfilesystems/no_swap boolean false
+d-i partman-auto-lvm/guided_size string max
 d-i partman-auto/choose_recipe select atomic
-d-i partman/default_filesystem string ext4
+d-i partman-auto-lvm/new_vg_name string system-vg
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
@@ -108,7 +85,8 @@ d-i debian-installer/splash boolean false
 d-i grub-installer/bootdev string /dev/nvme0n1
 d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
-d-i	grub-installer/timeout string 5
+d-i	grub-installer/timeout string 0
+d-i debian-installer/add-kernel-opts string vga=789 nomodeset
 
 ### Finishing up the installation
 d-i finish-install/reboot_in_progress note

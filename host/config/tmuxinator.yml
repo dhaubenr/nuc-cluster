@@ -44,7 +44,7 @@ windows:
       layout: tiled
       synchronize: after
       panes:
-        - ssh mintnuc1
-        - ssh mintnuc2
-        - ssh mintnuc3
-        - ssh mintnuc4
+        - ssh nuc1
+        - ssh nuc2
+        - ssh nuc3
+        - ssh nuc4

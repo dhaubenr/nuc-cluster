@@ -1,7 +1,6 @@
-# Install Ubuntu 18.04 LTS via PXE
+# Install Ubuntu 18.04 LTS via Legacy PXE
 
-These are setup instructions for a PXE bootp/tftp server on MacOSX for Ubuntu 18.04 LTS.
-They are inspired by <https://serverfault.com/questions/159536/free-pxe-boot-server-for-windows-or-os-x>.
+These are setup instructions for a Legacy PXE bootp/tftp server on MacOSX for Ubuntu 18.04 LTS.
 
 ## Host workstation setup
 
@@ -16,7 +15,7 @@ They are inspired by <https://serverfault.com/questions/159536/free-pxe-boot-ser
 
 This guide assumes that you're using your MacOSX workstation as the internet gateway host for
 the Intel NUC cluster. This can be done using MacOSX's 'Internet Sharing' feature using an external USB ethernet adapter (I found the only adapter to actually work is this one: [Anker USB 3.0 auf RJ45 10/100/1000 Gigabit Ethernet Adapter](https://www.amazon.de/gp/product/B00NPJV4YY/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)).
-The Internet Sharing feature of MacOSX hands out DHCP addresses to connected clients for the subnet `192.168.2.X/24`. The bootp server uses the following files for configuration and lease recording:
+The Internet Sharing feature of MacOSX hands out DHCP addresses to connected clients for the subnet `192.168.2.X/24`. The MacOSX bootp server uses the following files for configuration and lease recording:
 
 - /etc/bootpd.plist
 - /etc/bootptab
@@ -26,7 +25,7 @@ The built-in tftp server of MacOSX is hosting files out of this directory:
 
 - /private/tftpboot
 
-For the purpose of this project, Ubuntu 18.04 LTS (amd64) is the only installation source that is being offered by the PXE bootp/tftp server. Files can be downloaded from <http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/hwe-netboot/>, with `netboot.tar.gz` being the only file of interest (as it contains everything we need). Download and extract it like so:
+For the purpose of this project, Ubuntu 18.04 LTS (amd64) is the only installation source that is being offered by the Legacy PXE bootp/tftp server. Files can be downloaded from <http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/hwe-netboot/>, with `netboot.tar.gz` being the only file of interest (as it contains everything we need). Download and extract it like so:
 
 ```bash
 cd /private/tftpboot
@@ -38,7 +37,7 @@ sudo tar -zxf netboot.tar.gz
 export PXELINUX0_DATA=$(printf %s00 `echo -n pxelinux.0 | xxd -p` | xxd -r -p | openssl base64)
 ```
 
-## Starting the PXE bootp/tftp server
+## Starting the Legacy PXE bootp/tftp server
 
 - starting point:
   - workstation is turned on and connected to Wi-Fi or primary ethernet landline
@@ -59,6 +58,9 @@ export PXELINUX0_DATA=$(printf %s00 `echo -n pxelinux.0 | xxd -p` | xxd -r -p | 
                         <key>dhcp_option_66</key>
                         <string>192.168.2.254</string>
                         <key>dhcp_option_67</key>
+                        <!-- the following value is identical
+                             to $PXELINUX0_DATA (see prior instructions)
+                        -->
                         <data>cHhlbGludXguMAA=</data>
   ```
 
@@ -73,8 +75,8 @@ export PXELINUX0_DATA=$(printf %s00 `echo -n pxelinux.0 | xxd -p` | xxd -r -p | 
 
 - start the Intel NUC and enter it's BIOS using **F2**
 - uncheck option 'Boot Network Devices Last'
-- make sure 'PXE Boot' is enabled
-- reboot the Intel NUC and press **F12** to initiate booting from the network using your workstation as PXE server
+- make sure 'Legacy Boot' is enabled
+- reboot the Intel NUC and press **F12** to initiate booting from the network using your workstation as Legacy PXE server
 
 ## Install Ubuntu 18.04 LTS on Intel NUC manually
 
@@ -108,7 +110,7 @@ To be able to preseed (provide default installation presets) the Ubuntu 18.04 LT
 # the preseed.cfg jinja2 template file
 export PRESEED_J2_TEMPLATE=$(pwd)/preseed-ubuntu-18.04-server-amd64.cfg.j2
 # the jinja2 input data for the preseed.cfg template
-export PRESEED_J2_INPUT=$(pwd)/mintnuc1.json
+export PRESEED_J2_INPUT=$(pwd)/nuc1.json
 cd /private/tftpboot
 test -d preseeded || sudo mkdir preseeded
 cd preseeded
@@ -122,11 +124,12 @@ test -f ../ubuntu-installer/amd64/initrd.gz.orig || sudo cp ../ubuntu-installer/
 (find . | sudo gnucpio -o -H newC | sudo gzip) | sudo tee ../ubuntu-installer/amd64/initrd.gz > /dev/null
 ```
 
-The jinja2 input data file `mintnuc1.json` needs to look like this for things to work properly (please note that you have to fill in the `user` values with something that actually makes sense):
+The jinja2 input data file `nuc1.json` needs to look like this for things to work properly (please note that you have to fill in the `user` values with something that actually makes sense):
 
 ```json
 {
-    "host_name": "mintnuc1",
+    "host_name": "nuc1",
+    "ram_size": 16384,
     "user": {
         "fullname": "John Doe",
         "login": "jdoe",
