@@ -98,7 +98,11 @@ d-i finish-install/reboot_in_progress note
 d-i preseed/early_command string kill-all-dhcp; netcfg
 d-i preseed/late_command string in-target mkdir /home/{{ user.login }}/.ssh; \
                                 in-target sh -c 'echo "{{ user.ssh_pub_key }}" >> /home/{{ user.login }}/.ssh/authorized_keys'; \
-                                in-target chown -R {{ user.login }}:{{ user.login }} /home/{{ user.login }}/.ssh;
-                                #in-target sh -c 'echo "{{ user.login }} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/rc' ; \
-                                #in-target systemctl enable serial-getty@ttyS0.service ;
+                                in-target chown -R {{ user.login }}:{{ user.login }} /home/{{ user.login }}/.ssh; \
+                                in-target /bin/sed -i "s/XKBMODEL=\"[a-z]*\"/XKBMODEL=\"pc105\"/g" /etc/default/keyboard; \
+                                in-target /bin/sed -i "s/XKBLAYOUT=\"[a-z]*\"/XKBLAYOUT=\"de\"/g" /etc/default/keyboard; \
+                                in-target /bin/sed -i "s/XKBVARIANT=\"[a-z]*\"/XKBVARIANT=\"nodeadkeys\"/g" /etc/default/keyboard; \
+                                in-target /bin/sed -i "s/XKBOPTIONS=\"[a-z]*\"/XKBOPTIONS=\"\"/g" /etc/default/keyboard; \
+                                in-target /usr/sbin/dpkg-reconfigure -fnoninteractive keyboard-configuration; \
+                                in-target /usr/sbin/update-locale LC_TIME=en_US.UTF-8 LC_MESSAGES=POSIX
 ubiquity ubiquity/summary note
