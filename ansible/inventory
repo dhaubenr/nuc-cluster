@@ -1,0 +1,10 @@
+# main inventory
+
+# group_vars/nucs
+# host_vars/mintnuc[1:4]
+
+all:
+  children:
+    nucs:
+      hosts:
+        mintnuc[1:4]:

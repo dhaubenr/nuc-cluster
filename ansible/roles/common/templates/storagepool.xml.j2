@@ -1,0 +1,13 @@
+<pool type='dir'>
+  <name>{{ libvirt_storage_pool }}</name>
+  <source>
+  </source>
+  <target>
+    <path>{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}</path>
+    <permissions>
+      <mode>0711</mode>
+      <owner>0</owner>
+      <group>0</group>
+    </permissions>
+  </target>
+</pool>

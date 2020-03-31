@@ -1,0 +1,52 @@
+#!/usr/bin/env zsh
+
+function wakenuc () {
+  wakeonlan -i 192.168.2.255 -p 9 $1
+}
+
+function pingnuc () {
+  ping -c 1 -t $1 > /dev/null 2>&1
+}
+
+# argument check
+if [[ $# -eq 0 ]]; then
+  echo "Don't know which Intel NUC to wake. Need index number. Exiting."
+  exit 1
+fi
+
+# argument mapping
+NUC_INDEX=$1
+
+# get Intel NUC info (MAC and IP address) from /etc/bootptab (if it exists)
+if [[ -f /etc/bootptab ]]; then
+  NUC_INFO=$(egrep "^mintnuc$NUC_INDEX" /etc/bootptab)
+
+  if [[ ! -z "$NUC_INFO" ]]; then
+    NUC_MAC=$(echo $NUC_INFO | awk '{print $3}')
+    NUC_IP=$(echo $NUC_INFO | awk '{print $4}')
+
+    if [[ -z "$NUC_MAC" || -z "$NUC_IP" ]]; then
+      echo "Can't determine MAC and/or IP address of Intel NUC mintnuc$NUC_INDEX. Aborting."
+      exit 1
+    else
+
+      # ping the Intel NUC to see if it's online
+      pingnuc $NUC_IP
+      if [[ "$?" != 0 ]]; then
+
+        # no ping response from the Intel NUC so we send a magic packet to wake it up
+        wakenuc $NUC_MAC
+        exit $?
+      else
+        echo "Intel NUC mintnuc$NUC_INDEX is already online. Exiting."
+        exit 0
+      fi
+    fi
+  else
+    echo "Intel NUC mintnuc$NUC_INDEX not found in /etc/bootptab. Aborting."
+    exit 1
+  fi
+else
+  echo "Required file /etc/bootptab doesn't exist. Aborting."
+  exit 1
+fi

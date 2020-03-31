@@ -1,0 +1,28 @@
+Host *
+  ForwardX11 no
+  ForwardX11Trusted no
+  IdentitiesOnly yes
+  PermitLocalCommand yes
+  ServerAliveInterval 30
+  ServerAliveCountMax 5
+  TCPKeepAlive yes
+Host mintnuc1
+  HostName 192.168.2.101
+  User haubenr
+  Port 22
+  LocalCommand ssh-colorizer "red"
+Host mintnuc2
+  HostName 192.168.2.102
+  User haubenr
+  Port 22
+  LocalCommand ssh-colorizer "green"
+Host mintnuc3
+  HostName 192.168.2.103
+  User haubenr
+  Port 22
+  LocalCommand ssh-colorizer "blue"
+Host mintnuc4
+  HostName 192.168.2.104
+  User haubenr
+  Port 22
+  LocalCommand ssh-colorizer "yellow"

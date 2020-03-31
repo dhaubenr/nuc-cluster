@@ -1,0 +1,33 @@
+#!/usr/bin/env zsh
+
+function _iterm2_command () {
+  local cmd="$1"
+  local iterm2_prefix="\x1B]"
+  local iterm2_suffix="\x07"
+
+  if [[ -n $TMUX ]]; then
+    local tmux_prefix="\x1BPtmux;\x1B"
+    local tmux_suffix="\x1B\\"
+  fi
+
+  echo -n "${tmux_prefix}${iterm2_prefix}${cmd}${iterm2_suffix}${tmux_suffix}"
+}
+
+function iterm2_profile () {
+  local profile="$1"
+  local cmd="1337;SetProfile=$profile"
+  _iterm2_command "${cmd}"
+  ITERM_PROFILE="$profile"
+}
+
+if [[ "$TERM" = "screen"* ]] && [[ -n "$TMUX" ]]; then
+  style="bg=$1,fg=black"
+  tmux select-pane -P "$style" -t "$TMUX_PANE"
+  ( pwait "$PPID" -f /dev/null
+    tmux select-pane -P "default" -t "$TMUX_PANE" ) &
+else
+  color="$1"
+  iterm2_profile "${(C)color}"
+  ( pwait "$PPID" -f /dev/null
+    iterm2_profile "Default" ) &
+fi

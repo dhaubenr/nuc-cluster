@@ -1,0 +1,6 @@
+#!/usr/bin/env zsh
+
+PID="$1"
+while s=$(ps -p $PID -o state= | cut -c1) && [[ "$s" && "$s" != 'Z' ]]; do
+  sleep 1
+done

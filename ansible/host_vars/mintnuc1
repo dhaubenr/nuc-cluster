@@ -1,0 +1,5 @@
+---
+host_index: 1
+eth0_device_name: enp0s25
+secondary_disk: /dev/sda
+data_lv_size: 250G
