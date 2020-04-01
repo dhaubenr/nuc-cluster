@@ -108,7 +108,7 @@ To be able to preseed (provide default installation presets) the Ubuntu 18.04 LT
 
 ```bash
 # the preseed.cfg jinja2 template file
-export PRESEED_J2_TEMPLATE=$(pwd)/preseed-ubuntu-18.04-server-amd64.cfg.j2
+export PRESEED_J2_TEMPLATE=$(pwd)/preseed.cfg.j2
 # the jinja2 input data for the preseed.cfg template
 export PRESEED_J2_INPUT=$(pwd)/nuc1.json
 cd /private/tftpboot
