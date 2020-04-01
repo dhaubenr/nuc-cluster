@@ -50,10 +50,10 @@ The jinja2 input data file `bootptab.json` needs to look like this for things to
 ```json
 {
     "mac": {
-        "mintnuc1": "aa:bb:00:cc:11:dd",
-        "mintnuc2": "dd:11:cc:00:bb:aa",
-        "mintnuc3": "aa:00:bb:11:cc:dd",
-        "mintnuc4": "00:bb:aa:dd:11:cc"
+        "nuc1": "aa:bb:00:cc:11:dd",
+        "nuc2": "dd:11:cc:00:bb:aa",
+        "nuc3": "aa:00:bb:11:cc:dd",
+        "nuc4": "00:bb:aa:dd:11:cc"
     }
 }
 ```
@@ -68,10 +68,10 @@ wakenuc <nuc_index_number>
 Configure your workstation's `/etc/hosts` file by adding the following entries:
 
 ```text
-192.168.2.101   mintnuc1
-192.168.2.102   mintnuc2
-192.168.2.103   mintnuc3
-192.168.2.104   mintnuc4
+192.168.2.101   nuc1
+192.168.2.102   nuc2
+192.168.2.103   nuc3
+192.168.2.104   nuc4
 ```
 
 ## Intel NUC Ubuntu 18.04 LTS installation
@@ -125,8 +125,8 @@ ansible-playbook -i inventory nucs.yml --extra-vars "nuc_user=$(whoami)" --ask-b
   mkdir -p $HOME/.dsh/group
   cp host/config/dsh.conf $HOME/.dsh
   touch $HOME/.dsh/machines.list
-  for i in $(seq 1 4); do echo "mintnuc$i" >> $HOME/.dsh/machines.list; done
+  for i in $(seq 1 4); do echo "nuc$i" >> $HOME/.dsh/machines.list; done
   ln -sf ../machines.list $HOME/.dsh/group/all
-  echo "mintnuc1" >> $HOME/.dsh/group/nucs.master
-  for i in $(seq 2 4); do echo "mintnuc$i" >> $HOME/.dsh/group/nucs.worker; done
+  echo "nuc1" >> $HOME/.dsh/group/nuc.master
+  for i in $(seq 2 4); do echo "nuc$i" >> $HOME/.dsh/group/nuc.worker; done
   ```

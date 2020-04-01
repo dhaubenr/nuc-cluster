@@ -6,23 +6,23 @@ Host *
   ServerAliveInterval 30
   ServerAliveCountMax 5
   TCPKeepAlive yes
-Host mintnuc1
+Host nuc1
   HostName 192.168.2.101
-  User haubenr
+  User johndoe
   Port 22
   LocalCommand ssh-colorizer "red"
-Host mintnuc2
+Host nuc2
   HostName 192.168.2.102
-  User haubenr
+  User johndoe
   Port 22
   LocalCommand ssh-colorizer "green"
-Host mintnuc3
+Host nuc3
   HostName 192.168.2.103
-  User haubenr
+  User johndoe
   Port 22
   LocalCommand ssh-colorizer "blue"
-Host mintnuc4
+Host nuc4
   HostName 192.168.2.104
-  User haubenr
+  User johndoe
   Port 22
   LocalCommand ssh-colorizer "yellow"
