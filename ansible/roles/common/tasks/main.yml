@@ -29,6 +29,7 @@
         - curl
         - ebtables
         - git
+        - net-tools
         - nmap
         - wget
         - zsh
@@ -291,6 +292,7 @@
         append: yes
         state: present
   become: yes
+  when: ansible_distribution == 'Linux Mint'
 
 # named provisioning block - upgrade distribution
 # run as 'root' via ansible's 'become' directive
