@@ -1,0 +1,8 @@
+#!/bin/sh
+
+sysctl -w net.inet.ip.forwarding=1
+pfctl -d
+sleep 1
+pfctl -F all
+sleep 1
+pfctl -f /private/etc/nat-rules -e
