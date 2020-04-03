@@ -1,2 +1,3 @@
 preseed.cfg
+dhcpd.conf
 *.json

@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 function wakenuc () {
-  wakeonlan -i 192.168.2.255 -p 9 $1
+  wakeonlan -i 192.168.3.255 -p 9 $1
 }
 
 function pingnuc () {
@@ -17,13 +17,13 @@ fi
 # argument mapping
 NUC_INDEX=$1
 
-# get Intel NUC info (MAC and IP address) from /etc/bootptab (if it exists)
-if [[ -f /etc/bootptab ]]; then
-  NUC_INFO=$(egrep "^nuc$NUC_INDEX" /etc/bootptab)
+# get Intel NUC info (MAC and IP address) from /usr/local/etc/dhcpd.conf (if it exists)
+if [[ -f /usr/local/etc/dhcpd.conf ]]; then
+  NUC_INFO=$(egrep "^host nuc$NUC_INDEX" -A 2 /usr/local/etc/dhcpd.conf | tail -2)
 
   if [[ ! -z "$NUC_INFO" ]]; then
-    NUC_MAC=$(echo $NUC_INFO | awk '{print $3}')
-    NUC_IP=$(echo $NUC_INFO | awk '{print $4}')
+    NUC_MAC=$(echo $NUC_INFO | grep hardware | awk '{print $3}' | tr -d ';')
+    NUC_IP=$(echo $NUC_INFO | grep fixed-address | awk '{print $2}' | tr -d ';')
 
     if [[ -z "$NUC_MAC" || -z "$NUC_IP" ]]; then
       echo "Can't determine MAC and/or IP address of Intel NUC nuc$NUC_INDEX. Aborting."
@@ -43,10 +43,10 @@ if [[ -f /etc/bootptab ]]; then
       fi
     fi
   else
-    echo "Intel NUC nuc$NUC_INDEX not found in /etc/bootptab. Aborting."
+    echo "Intel NUC nuc$NUC_INDEX not found in /usr/local/etc/dhcpd.conf. Aborting."
     exit 1
   fi
 else
-  echo "Required file /etc/bootptab doesn't exist. Aborting."
+  echo "Required file /usr/local/etc/dhcpd.conf doesn't exist. Aborting."
   exit 1
 fi

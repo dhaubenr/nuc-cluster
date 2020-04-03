@@ -7,22 +7,18 @@ Host *
   ServerAliveCountMax 5
   TCPKeepAlive yes
 Host nuc1
-  HostName 192.168.2.101
+  HostName 192.168.3.11
   User johndoe
   Port 22
-  LocalCommand ssh-colorizer "red"
 Host nuc2
-  HostName 192.168.2.102
+  HostName 192.168.3.12
   User johndoe
   Port 22
-  LocalCommand ssh-colorizer "green"
 Host nuc3
-  HostName 192.168.2.103
+  HostName 192.168.3.13
   User johndoe
   Port 22
-  LocalCommand ssh-colorizer "blue"
 Host nuc4
-  HostName 192.168.2.104
+  HostName 192.168.3.14
   User johndoe
   Port 22
-  LocalCommand ssh-colorizer "yellow"
