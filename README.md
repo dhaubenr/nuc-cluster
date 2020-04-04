@@ -4,12 +4,12 @@ Compilation of resources (scripts, snippets, instructions) to setup a multi-purp
 
 ## Hardware
 
-| Type      | Model      | CPU  | RAM    | DISK1 (NVMe) | DISK2 (SATA SSD) | NODE INDEX |
-|-----------|------------|------|-------:|-------------:|-----------------:|-----------:|
-| Intel NUC | NUC5i3RYH  | 2(4) | 16GB   | 128GB        | 480GB            | 1          |
-| Intel NUC | NUC7i5BNH  | 2(4) | 32GB   | 256GB        | 500GB            | 2          |
-| Intel NUC | NUC8i5BEH  | 4(8) | 32GB   | 256GB        | 512GB            | 3          |
-| Intel NUC | NUC8i3BEH  | 2(4) | 32GB   | 256GB        | 512GB            | 4          |
+| Type      | Model      | CPU  | RAM    | DISK1 (NVMe) | DISK2 (SATA SSD) | Wired Ethernet Device | NODE INDEX |
+|-----------|------------|------|-------:|-------------:|-----------------:|-----------------------|-----------:|
+| Intel NUC | NUC5i3RYH  | 2(4) | 16GB   | 128GB        | 480GB            | enp0s25               | 1          |
+| Intel NUC | NUC7i5BNH  | 2(4) | 32GB   | 256GB        | 500GB            | eno1                  | 2          |
+| Intel NUC | NUC8i5BEH  | 4(8) | 32GB   | 256GB        | 512GB            | eno1                  | 3          |
+| Intel NUC | NUC8i3BEH  | 2(4) | 32GB   | 256GB        | 512GB            | eno1                  | 4          |
 
 - Netgear Gigabit Ethernet Switch GS305E (managed, 5 ports)
 - UPerfect Portable HDMI Display (7 inch, resolution: 1024*600)
@@ -20,7 +20,9 @@ Compilation of resources (scripts, snippets, instructions) to setup a multi-purp
 
 ### Software prequisites
 
-- pip3 install j2cli[yaml] (installed globally)
+- `brew install wakeonlan`
+- `pip3 install j2cli[yaml]` (installed globally)
+- `pip3 install yq` (installed globally)
 
 ## Host workstation setup
 
@@ -58,7 +60,6 @@ Follow these steps to configure NAT and IP forwarding on your MacOSX workstation
   - start required services:
 
     ```bash
-    # before starting the nat-pf and dhcp services we need to connect the external USB ethernet adapter
     sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.dhcp.plist
     sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.nat-pf.plist
     ```
