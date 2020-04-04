@@ -7,6 +7,7 @@ These are setup instructions for a custom PXE server on MacOSX for Ubuntu 18.04 
 ### Software prequisites
 
 - `brew install jq`
+- `brew install gnu-tar`
 - `pip3 install j2cli[yaml]` (installed globally)
 - `pip3 install yq` (installed globally)
 
@@ -19,7 +20,7 @@ The following steps will help you setting up the various required components on 
 
 - used network interfaces: en0 (Wi-Fi) -> en11 (USB 10/100/1000 LAN))
 
-- one-time setup:
+- one-time service setup:
   - assign static IP to adapter: `networksetup -setmanual "USB 10/100/1000 LAN" 192.168.3.1 255.255.255.0`
   - permanently enable IP forwarding: `echo "net.inet.ip.forwarding=1" | sudo tee -a /private/etc/sysctl.conf`
   - install and configure DHCP server:
@@ -51,8 +52,30 @@ The following steps will help you setting up the various required components on 
   - download netboot.xyz source: `cd /tmp && git clone https://github.com/netbootxyz/netboot.xyz.git`
   - build netboot.xyz using Docker: `cd /tmp/netboot.xyz && docker build -t localbuild -f Dockerfile-build . && docker run --rm -it -v $(pwd):/buildout localbuild`
   - copy netboot.xyz build artifacts to HTTP server root: `cd /tmp/netboot.xyz/buildout && cp -R * /usr/local/var/www`
-  - put Legacy PXE bootloader file in tftp server root: `sudo cp /usr/local/var/www/ipxe/netboot.xyz.kpxe /private/tftpboot`
-  - put UEFI PXE bootloader file in tftp server root: `sudo cp /usr/local/var/www/ipxe/netboot.xyz.efi /private/tftpboot`
+  - copy required netboot.xyz build artifacts to TFTP server root:
+
+    ```bash
+    cd /tmp/netboot.xyz/buildout
+    sudo cp menu.ipxe linux.ipxe ubuntu.ipxe ipxe/netboot.xyz.efi ipxe/netboot.xyz.kpxe ipxe/netboot.xyz-undionly.kpxe /private/tftpboot
+    ```
+  
+  - copy netboot.xyz configuration file to TFTP server root: `sudo cp boot.cfg /private/tftpboot`
+
+- Ubuntu 18.04 LTS local installation mirror setup:
+  - create directory structure `ubuntu` in HTTP server root: `mkdir -p /usr/local/var/www/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen`
+  - download Ubuntu netboot files:
+
+    ```bash
+    cd /usr/local/var/www/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot
+    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/netboot.tar.gz
+    gtar -zxf netboot.tar.gz
+    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/mini.iso
+    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/boot.img.gz
+    cd /usr/local/var/www/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen
+    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen/initrd.gz
+    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen/vmlinuz
+    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen/xm-debian.cfg
+    ```
 
 - Ubuntu 18.04 LTS preseeded installation configuration:
   - create jinja2 input files `nucX.json` where X is the Intel NUC's corresponding index number (please note that you have to fill in the `user` values with something that actually makes sense):
@@ -61,6 +84,7 @@ The following steps will help you setting up the various required components on 
     {
         "host_name": "nucX",
         "ram_size": 16384,
+        "network_device": "enp0s25",
         "user": {
             "fullname": "John Doe",
             "login": "jdoe",
@@ -73,8 +97,14 @@ The following steps will help you setting up the various required components on 
   - transform the preseed configuration template file using jinja2:
 
     ```bash
-    mkdir -p /usr/local/var/www/preseed
-    for i in $(seq 1 4); do j2 preseed.cfg.j2 nuc$i.json -o /usr/local/var/www/preseed/preseed_nuc$i.cfg; done;
+    mkdir -p /usr/local/var/www/ubuntu/preseed
+    for i in $(seq 1 4); do j2 preseed_nuc.cfg.j2 nuc$i.json -o /usr/local/var/www/ubuntu/preseed/preseed_nuc$i.cfg; done;
+    ```
+  
+  - create the NUC-specific iPXE boot files using jinja2:
+
+    ```bash
+    for i in $(seq 1 4); do sudo j2 HOSTNAME-nuc.ipxe.j2 nuc$i.json -o /private/tftpboot/HOSTNAME-nuc$i.ipxe; done;
     ```
 
 - run:
@@ -83,7 +113,6 @@ The following steps will help you setting up the various required components on 
     ```bash
     sudo launchctl load -w /System/Library/LaunchDaemons/tftp.plist
     sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.nginx.plist
-    # before starting the nat-pf and dhcp services we need to connect the external ethernet adapter
     sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.dhcp.plist
     sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.nat-pf.plist
     ```
@@ -99,10 +128,3 @@ The following steps will help you setting up the various required components on 
 
 - operate:
   - inspect DHCP server logs: `sudo log stream --info --debug --predicate "process == 'dhcpd'"`
-
-## Launch network installation on Intel NUC
-
-- start the Intel NUC and enter it's BIOS using **F2**
-- uncheck option 'Boot Network Devices Last'
-- either enable 'Legacy Boot' or 'PXE Boot'
-- reboot the Intel NUC and press **F12** to initiate booting from the network using your workstation as PXE server

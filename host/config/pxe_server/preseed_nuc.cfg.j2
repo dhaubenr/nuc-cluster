@@ -1,5 +1,4 @@
 #### Contents of the preconfiguration file (for &releasename;)
-### Tested with Ubuntu 18.04(.4) LTS [amd64] using Legacy PXE boot
 
 ### Automatic Installation
 d-i auto-install/enable boolean true
@@ -20,13 +19,15 @@ d-i keyboard-configuration/xkb-keymap select de(nodeadkeys)
 d-i debconf/language string en_US:en
 
 ### Network configuration
-d-i netcfg/choose_interface select auto
+# interface selection is done via kernel boot parameter
+d-i netcfg/link_wait_timeout string 30
 d-i netcfg/dhcp_timeout string 60
 d-i netcfg/dhcp_failed note
 d-i netcfg/get_hostname string unassigned-hostname
 d-i netcfg/get_domain string unassigned-domain
 d-i netcfg/hostname string {{ host_name }}
 d-i netcfg/wireless_wep string
+d-i hw-detect/load_firmware boolean true
 
 ### Mirror settings
 d-i mirror/country string manual

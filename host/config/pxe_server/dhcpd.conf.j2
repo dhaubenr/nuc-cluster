@@ -16,14 +16,12 @@ ignore client-updates;
 
 authoritative;
 
-option domain-name "nuc.all";
-option domain-name-servers 192.168.3.1, 8.8.8.8, 8.8.4.4;
-
 subnet 192.168.3.0 netmask 255.255.255.0 {
   range 192.168.3.100 192.168.3.200;
   option subnet-mask 255.255.255.0;
   option broadcast-address 192.168.3.255;
   option routers 192.168.3.1;
+  option domain-name-servers 8.8.8.8;
   next-server 192.168.3.1;
 
   class "UEFI-64-1" {
@@ -43,7 +41,7 @@ subnet 192.168.3.0 netmask 255.255.255.0 {
 
   class "Legacy" {
     match if substring(option vendor-class-identifier, 0, 20) = "PXEClient:Arch:00000";
-    filename "netboot.xyz.kpxe";
+    filename "netboot.xyz-undionly.kpxe";
   }
 }
 
