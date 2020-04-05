@@ -10,7 +10,7 @@ set mirrorcfg mirror/suite=${ubuntu_version}
 set dir ubuntu/dists/${ubuntu_version}-updates/main/installer-${arch_a}/current/images/netboot
 
 set preseed_url ${live_endpoint}/ubuntu/preseed/preseed_{{ host_name }}.cfg
-set install_params auto=true priority=critical netcfg/choose_interface={{ network_device }} preseed/url=${preseed_url}
+set install_params auto=true priority=critical vga=789 netcfg/choose_interface={{ network_device }} preseed/url=${preseed_url}
 
 imgfree
 kernel ${ubuntu_mirror}/${dir}/ubuntu-installer/${arch_a}/linux ${install_params} ${mirrorcfg} ${console} -- quiet ${params} initrd=initrd.gz

@@ -40,9 +40,9 @@ The following steps will help you setting up the various required components on 
     - `brew install isc-dhcp`
     - `sudo cp org.dhaubenr.dhcp.plist /Library/LaunchDaemons/ && sudo chown root:wheel /Library/LaunchDaemons/org.dhaubenr.dhcp.plist`
     - `j2 dhcpd.conf.j2 dhcpd.conf.json -o /usr/local/etc/dhcpd.conf`
-  - install HTTP server:
-    - `brew install nginx`
-    - `sudo cp org.dhaubenr.nginx.plist /Library/LaunchDaemons/ && sudo chown root:wheel /Library/LaunchDaemons/org.dhaubenr.nginx.plist`
+  - setup built-in TFTP server:
+    - create TFTP root directory: `mkdir -p /usr/local/var/tftpboot`
+    - `sudo cp org.dhaubenr.tftp.plist /Library/LaunchDaemons/ && sudo chown root:wheel /Library/LaunchDaemons/org.dhaubenr.tftp.plist`
   - setup NAT for external USB ethernet adapter:
     - `cp nat-pf /usr/local/bin/nat-pf && sudo chown root:wheel /usr/local/bin/nat-pf && sudo chmod 755 /usr/local/bin/nat-pf`
     - `sudo cp nat-rules /private/etc/nat-rules && sudo chown root:wheel /private/etc/nat-rules`
@@ -51,68 +51,30 @@ The following steps will help you setting up the various required components on 
 - netboot.xyz configuration:
   - download netboot.xyz source: `cd /tmp && git clone https://github.com/netbootxyz/netboot.xyz.git`
   - build netboot.xyz using Docker: `cd /tmp/netboot.xyz && docker build -t localbuild -f Dockerfile-build . && docker run --rm -it -v $(pwd):/buildout localbuild`
-  - copy netboot.xyz build artifacts to HTTP server root: `cd /tmp/netboot.xyz/buildout && cp -R * /usr/local/var/www`
+  - follow instructions in [nuc-nginx](../network_boot/docker/nginx/README.md) to setup and configure local nginx HTTP server
   - copy required netboot.xyz build artifacts to TFTP server root:
 
     ```bash
     cd /tmp/netboot.xyz/buildout
-    sudo cp menu.ipxe linux.ipxe ubuntu.ipxe ipxe/netboot.xyz.efi ipxe/netboot.xyz.kpxe ipxe/netboot.xyz-undionly.kpxe /private/tftpboot
+    sudo cp menu.ipxe linux.ipxe ubuntu.ipxe ipxe/netboot.xyz.efi ipxe/netboot.xyz.kpxe ipxe/netboot.xyz-undionly.kpxe /usr/local/var/tftpboot
     ```
   
-  - copy netboot.xyz configuration file to TFTP server root: `sudo cp boot.cfg /private/tftpboot`
-
-- Ubuntu 18.04 LTS local installation mirror setup:
-  - create directory structure `ubuntu` in HTTP server root: `mkdir -p /usr/local/var/www/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen`
-  - download Ubuntu netboot files:
-
-    ```bash
-    cd /usr/local/var/www/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot
-    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/netboot.tar.gz
-    gtar -zxf netboot.tar.gz
-    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/mini.iso
-    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/boot.img.gz
-    cd /usr/local/var/www/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen
-    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen/initrd.gz
-    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen/vmlinuz
-    wget http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/xen/xm-debian.cfg
-    ```
-
-- Ubuntu 18.04 LTS preseeded installation configuration:
-  - create jinja2 input files `nucX.json` where X is the Intel NUC's corresponding index number (please note that you have to fill in the `user` values with something that actually makes sense):
-
-    ```json
-    {
-        "host_name": "nucX",
-        "ram_size": 16384,
-        "network_device": "enp0s25",
-        "user": {
-            "fullname": "John Doe",
-            "login": "jdoe",
-            "password": "K33pAway!",
-            "ssh_pub_key": "ssh-rsa NOTAREALKEY jdoe@workstation"
-        }
-    }
-    ```
-  
-  - transform the preseed configuration template file using jinja2:
-
-    ```bash
-    mkdir -p /usr/local/var/www/ubuntu/preseed
-    for i in $(seq 1 4); do j2 preseed_nuc.cfg.j2 nuc$i.json -o /usr/local/var/www/ubuntu/preseed/preseed_nuc$i.cfg; done;
-    ```
+  - copy netboot.xyz configuration file to TFTP server root: `sudo cp boot.cfg /usr/local/var/tftpboot`
   
   - create the NUC-specific iPXE boot files using jinja2:
 
     ```bash
-    for i in $(seq 1 4); do sudo j2 HOSTNAME-nuc.ipxe.j2 nuc$i.json -o /private/tftpboot/HOSTNAME-nuc$i.ipxe; done;
+    for i in $(seq 1 4); do sudo j2 HOSTNAME-nuc.ipxe.j2 nuc$i.json -o /usr/local/var/tftpboot/HOSTNAME-nuc$i.ipxe; done;
     ```
+
+- Ubuntu installation source caching configuration:
+  - follow instructions in [nuc-acng](../network_boot/docker/apt-cacher-ng/README.md) to setup and configure local apt-cacher-ng proxy
 
 - run:
   - start required services:
 
     ```bash
     sudo launchctl load -w /System/Library/LaunchDaemons/tftp.plist
-    sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.nginx.plist
     sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.dhcp.plist
     sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.nat-pf.plist
     ```
@@ -121,7 +83,6 @@ The following steps will help you setting up the various required components on 
 
     ```bash
     sudo launchctl unload -w /System/Library/LaunchDaemons/tftp.plist
-    sudo launchctl unload -w /Library/LaunchDaemons/org.dhaubenr.nginx.plist
     sudo launchctl unload -w /Library/LaunchDaemons/org.dhaubenr.dhcp.plist
     sudo launchctl unload -w /Library/LaunchDaemons/org.dhaubenr.nat-pf.plist
     ```
