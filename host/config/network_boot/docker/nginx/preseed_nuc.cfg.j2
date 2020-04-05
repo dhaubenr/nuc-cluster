@@ -31,9 +31,9 @@ d-i hw-detect/load_firmware boolean true
 
 ### Mirror settings
 d-i mirror/country string manual
-d-i mirror/http/hostname string archive.ubuntu.com
+d-i mirror/http/hostname string de.archive.ubuntu.com
 d-i mirror/http/directory string /ubuntu
-d-i mirror/http/proxy string
+d-i mirror/http/proxy string {{ installation_proxy }}
 
 ### Clock and time zone setup
 d-i clock-setup/utc boolean true
@@ -41,8 +41,15 @@ d-i time/zone string Europe/Berlin
 d-i clock-setup/ntp boolean true
 
 ### Partitioning
+d-i partman-efi/non_efi_system boolean true
 d-i partman-auto/disk string /dev/nvme0n1
 d-i partman-auto/method string lvm
+d-i partman-basicfilesystems/choose_label string gpt
+d-i partman-basicfilesystems/default_label string gpt
+d-i partman-partitioning/choose_label string gpt
+d-i partman-partitioning/default_label string gpt
+d-i partman/choose_label string gpt
+d-i partman/default_label string gpt
 d-i partman-auto/cap-ram {{ ram_size }}
 d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-md/device_remove_md boolean true
@@ -85,11 +92,10 @@ d-i debian-installer/quiet boolean false
 d-i debian-installer/splash boolean false
 
 ### Boot loader installation
-d-i grub-installer/bootdev string /dev/nvme0n1
+d-i grub-installer/bootdev string default
 d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
-d-i	grub-installer/timeout string 0
-d-i debian-installer/add-kernel-opts string vga=789 nomodeset
+d-i grub-installer/timeout string 0
 
 ### Finishing up the installation
 d-i finish-install/reboot_in_progress note
@@ -106,5 +112,8 @@ d-i preseed/late_command string in-target mkdir /home/{{ user.login }}/.ssh; \
                                 in-target /bin/sed -i "s/XKBVARIANT=\"[a-z]*\"/XKBVARIANT=\"nodeadkeys\"/g" /etc/default/keyboard; \
                                 in-target /bin/sed -i "s/XKBOPTIONS=\"[a-z]*\"/XKBOPTIONS=\"\"/g" /etc/default/keyboard; \
                                 in-target /usr/sbin/dpkg-reconfigure -fnoninteractive keyboard-configuration; \
-                                in-target /usr/sbin/update-locale LC_TIME=en_US.UTF-8 LC_MESSAGES=POSIX
+                                in-target /usr/sbin/update-locale LC_TIME=en_US.UTF-8 LC_MESSAGES=POSIX; \
+                                in-target sh -c 'echo "GRUB_RECORDFAIL_TIMEOUT=0" >> /etc/default/grub'; \
+                                in-target /bin/sed -i "s/#GRUB_GFXMODE=[0-9a-z]*/GRUB_GFXMODE=800x600/g" /etc/default/grub; \
+                                in-target /usr/sbin/update-grub
 ubiquity ubiquity/summary note
