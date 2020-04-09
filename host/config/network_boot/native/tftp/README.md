@@ -11,7 +11,7 @@ This document describes how to configure the native (built-in) `tftp` instance o
 
 ## Configure
 
-First create jinja2 input files for each Intel NUC, named `nucX.json` (X being the index number of the respective Intel NUC) with the following content. Make sure to insert the correct index number and network device name. For reference see [Hardware](../../../../../README.md).
+First create jinja2 input files for each Intel NUC, named `nucX.json` (X being the index number of the respective Intel NUC) with the following content. Make sure to insert the correct index number and network device name. For reference see [Hardware overview](../../../../../README.md).
 
 ```json
 {

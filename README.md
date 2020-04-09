@@ -2,10 +2,10 @@
 
 Compilation of resources (scripts, snippets, instructions) to setup a multi-purpose Linux cluster on Intel NUCs
 
-## Hardware
+## Hardware overview
 
 | Type      | Model      | CPU  | RAM    | DISK1 (NVMe) | DISK2 (SATA SSD) | Wired Ethernet Device | NODE INDEX |
-|-----------|------------|------|-------:|-------------:|-----------------:|-----------------------|-----------:|
+|-----------|------------|-----:|-------:|-------------:|-----------------:|----------------------:|-----------:|
 | Intel NUC | NUC5i3RYH  | 2(4) | 16GB   | 128GB        | 480GB            | enp0s25               | 1          |
 | Intel NUC | NUC7i5BNH  | 2(4) | 32GB   | 256GB        | 500GB            | eno1                  | 2          |
 | Intel NUC | NUC8i5BEH  | 4(8) | 32GB   | 256GB        | 512GB            | eno1                  | 3          |
@@ -18,67 +18,36 @@ Compilation of resources (scripts, snippets, instructions) to setup a multi-purp
 - Logitech K400 Plus Wireless Keyboard (w/ touchpad)
 - lots of cables (ethernet, power, HDMI, USB)
 
-### Software prequisites
-
-- `brew install wakeonlan`
-- `pip3 install j2cli[yaml]` (installed globally)
-- `pip3 install yq` (installed globally)
-
 ## Host workstation setup
 
 This guide assumes that you're using your MacOSX workstation as the internet gateway host for
 the Intel NUC cluster. This can be done using NAT (natural address translation) and IP forwarding between one of the workstation's internel network interfaces (e.g. Wi-Fi) and an external USB ethernet adapter (I found the only adapter to actually work is this one: [Anker USB 3.0 auf RJ45 10/100/1000 Gigabit Ethernet Adapter](https://www.amazon.de/gp/product/B00NPJV4YY/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)).
 
-Follow these steps to configure NAT and IP forwarding on your MacOSX workstation:
+Follow the instructions outlined in the following READMEs to setup NAT and DHCP on your MacOSX workstation:
 
-- one-time setup:
-  - assign static IP to adapter: `networksetup -setmanual "USB 10/100/1000 LAN" 192.168.3.1 255.255.255.0`
-  - permanently enable IP forwarding: `echo "net.inet.ip.forwarding=1" | sudo tee -a /private/etc/sysctl.conf`
-  - install and configure DHCP server:
-    - create jinja2 input file `host/config/pxe_server/dhcdp.conf.json` with the following content (insert the MAC addresses of your actual Intel NUCs):
+- [nat-pf](./host/config/network_boot/native/nat-pf/README.md)
+- [isc-dhcp](./host/config/network_boot/native/isc-dhcp/README.md)
 
-      ```json
-      {
-          "mac": {
-              "nuc1": "aa:bb:cc:dd:ee:ff",
-              "nuc2": "ff:ee:dd:cc:bb:aa",
-              "nuc3": "aa:ff:bb:ee:cc:dd",
-              "nuc4": "cc:dd:bb:ee:ff:aa"
-          }
-      }
-      ```
+## Intel NUC Ubuntu 18.04 LTS installation
 
-    - `brew install isc-dhcp`
-    - `sudo cp host/config/pxe_server/org.dhaubenr.dhcp.plist /Library/LaunchDaemons/ && sudo chown root:wheel /Library/LaunchDaemons/org.dhaubenr.dhcp.plist`
-    - `j2 host/config/pxe_server/dhcpd.conf.j2 host/config/pxe_server/dhcpd.conf.json -o /usr/local/etc/dhcpd.conf`
-  - setup NAT for external USB ethernet adapter:
-    - `cp host/config/pxe_server/nat-pf /usr/local/bin/nat-pf && sudo chown root:wheel /usr/local/bin/nat-pf && sudo chmod 755 /usr/local/bin/nat-pf`
-    - `sudo cp host/config/pxe_server/nat-rules /private/etc/nat-rules && sudo chown root:wheel /private/etc/nat-rules`
-    - `sudo cp host/config/pxe_server/org.dhaubenr.nat-pf.plist /Library/LaunchDaemons/ && sudo chown root:wheel /Library/LaunchDaemons/org.dhaubenr.nat-pf.plist`
+See [Install Ubuntu 18.04 LTS via iPXE](host/config/network_boot/README.md) for more information.
 
-- run:
-  - start required services:
+## MacOSX workstation setup
 
-    ```bash
-    sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.dhcp.plist
-    sudo launchctl load -w /Library/LaunchDaemons/org.dhaubenr.nat-pf.plist
-    ```
+Whenever you want to use your Intel NUC cluster and thus share the network connection of your MacOSX workstation's primary network adapter with the cluster nodes make sure the following services are running:
 
-  - stop required services:
-
-    ```bash
-    sudo launchctl unload -w /Library/LaunchDaemons/org.dhaubenr.dhcp.plist
-    sudo launchctl unload -w /Library/LaunchDaemons/org.dhaubenr.nat-pf.plist
-    ```
+- LaunchDaemon `org.dhaubenr.nat-pf.plist`
+- LaunchDaemon `org.dhaubenr.dhcp.plist`
 
 If you want to use the Intel NUC's Wake-On-LAN feature (must be configured in the BIOS) you can make a copy of the included script file `host/scripts/wakenuc` and use it like this:
 
 ```bash
+brew install wakeonlan
 cp host/scripts/wakenuc /usr/local/bin/wakenuc && chmod a+x /usr/local/bin/wakenuc
 wakenuc <nuc_index_number>
 ```
 
-Configure your workstation's `/etc/hosts` file by adding the following entries:
+To be able to address individual Intel NUCs with a logical network name, configure your workstation's `/etc/hosts` file by adding the following entries:
 
 ```text
 192.168.3.11   nuc1
@@ -87,9 +56,25 @@ Configure your workstation's `/etc/hosts` file by adding the following entries:
 192.168.3.14   nuc4
 ```
 
-## Intel NUC Ubuntu 18.04 LTS installation
+To be able to SSH into the Intel NUC's operating system you can use the `host/config/ssh_config` file included in this repository as an example to adapt your workstation's `$HOME/.ssh/config` file.
 
-See [Install Ubuntu 18.04 LTS via PXE](host/config/pxe_server/README.md) for more information.
+In case you want to use `tmuxinator` (<https://github.com/tmuxinator/tmuxinator>) to administer your Intel NUC cluster make a copy of the included file `host/config/tmuxinator.yml` on your workstation:
+
+```bash
+cp config/tmuxinator.yml .tmuxinator.yml
+```
+
+In case you want to use `dsh` (<https://www.ostechnix.com/dsh-run-linux-command-multiple-hosts-time/>) configure it on your workstation using the following commands:
+
+```bash
+mkdir -p $HOME/.dsh/group
+cp host/config/dsh.conf $HOME/.dsh
+touch $HOME/.dsh/machines.list
+for i in $(seq 1 4); do echo "nuc$i" >> $HOME/.dsh/machines.list; done
+ln -sf ../machines.list $HOME/.dsh/group/all
+echo "nuc1" >> $HOME/.dsh/group/nuc.master
+for i in $(seq 2 4); do echo "nuc$i" >> $HOME/.dsh/group/nuc.worker; done
+```
 
 ## Provision Intel NUCs using Ansible
 
@@ -116,30 +101,3 @@ See [Install Ubuntu 18.04 LTS via PXE](host/config/pxe_server/README.md) for mor
   # make sure 'nuc_user' refers to the preseeded user in Ubuntu 18.04 LTS
   ansible-playbook -i inventory nucs.yml --extra-vars "nuc_user=$(whoami)" --ask-become-pass [--limit nucs[0]]
   ```
-
-- afterwards run the following steps on your workstation:
-  - use the `host/config/ssh_config` file in this repository as an example to adapt your workstation's `$HOME/.ssh/config` file to include all Intel NUCs
-  - copy the SSH helper scripts `host/scripts/ssh-colorizer` and `host/scripts/pwait` to a directory that is included in your local workstation's PATH variable:
-
-    ```bash
-    cp scripts/pwait /usr/local/bin/pwait && chmod a+x /usr/local/bin/pwait
-    cp scripts/ssh-colorizer /usr/local/bin/ssh-colorizer && chmod a+x /usr/local/bin/ssh-colorizer
-    ```
-
-  - if you want to use `tmuxinator` (optional), make a copy of the file `host/config/tmuxinator.yml` on your workstation:
-
-    ```bash
-    cp config/tmuxinator.yml .tmuxinator.yml
-    ```
-
-  - if you want to use `dsh` (optional), configure it on your workstation using the following commands:
-
-    ```bash
-    mkdir -p $HOME/.dsh/group
-    cp host/config/dsh.conf $HOME/.dsh
-    touch $HOME/.dsh/machines.list
-    for i in $(seq 1 4); do echo "nuc$i" >> $HOME/.dsh/machines.list; done
-    ln -sf ../machines.list $HOME/.dsh/group/all
-    echo "nuc1" >> $HOME/.dsh/group/nuc.master
-    for i in $(seq 2 4); do echo "nuc$i" >> $HOME/.dsh/group/nuc.worker; done
-    ```
