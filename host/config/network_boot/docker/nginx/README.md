@@ -32,7 +32,7 @@ This will run the nginx Docker container in the background, listening on port 80
 
 ## Configure
 
-First create jinja2 input files for each Intel NUC, named `nucX.json` (X being the index number of the respective Intel NUC) with the following content. Make sure to insert the correct values for the Intel NUC hardware as well as for the target user. For reference see [Hardware](../../../../../README.md).
+First create jinja2 input files for each Intel NUC, named `nucX.json` (X being the index number of the respective Intel NUC) with the following content. Make sure to insert the correct values for the Intel NUC hardware as well as for the target user. For reference see [Hardware overview](../../../../../README.md).
 
 ```json
 {
