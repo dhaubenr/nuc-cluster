@@ -2,7 +2,7 @@
 
 This document describes how to configure the native (built-in) `tftp` instance on your local MacOSX workstation.
 
-## Softwate prerequites
+## Software prerequites
 
 - `brew install jq`
 - `brew install gnu-tar`

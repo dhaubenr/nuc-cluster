@@ -4,7 +4,7 @@ This is a fairly simple Docker image that runs a `apt-cacher-ng` instance
 which can be used to speed up the Intel NUC network installations off of the
 local MacOSX workstation.
 
-## Prerequisites
+## Software prerequisites
 
 - Docker Desktop for MacOSX, version 2.2 or later
 
