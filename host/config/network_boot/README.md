@@ -22,8 +22,8 @@ The following components are **optional** (but recommended):
 
 Once you've installed and configured the individual components of the iPXE server make sure the following services are running whenever you want to use it for installing the attached Intel NUCs from the network:
 
-- LaunchDaemon org.dhaubenr.nat-pf.plist
-- LaunchDaemon org.dhaubenr.dhcp.plist
-- LaunchDaemonorg.dhaubenr.tftp.plist
-- Docker container nuc-nginx
-- Docker container nuc-acng (optional)
+- LaunchDaemon `org.dhaubenr.nat-pf.plist`
+- LaunchDaemon `org.dhaubenr.dhcp.plist`
+- LaunchDaemon `org.dhaubenr.tftp.plist`
+- Docker container `nuc-nginx`
+- Docker container `nuc-acng` (optional)

@@ -37,7 +37,7 @@ First create jinja2 input files for each Intel NUC, named `nucX.json` (X being t
 ```json
 {
     "host_name": "nucX",
-    "ram_size": [16384|32768],
+    "ram_size": 16384,
     "installation_proxy": "http://192.168.3.1:3142",
     "user": {
         "fullname": "John Doe",
