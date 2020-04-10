@@ -1,0 +1,50 @@
+---
+
+# name provisioning block - non-root user configuration
+# partially run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: configure user {{ nuc_user }}
+  block:
+    - name: install oh-my-zsh
+      command: |
+        git clone -c core.autocrlf=input --depth=1 https://github.com/robbyrussell/oh-my-zsh.git ~{{ nuc_user }}/.oh-my-zsh
+      args:
+        creates: '~{{ nuc_user }}/.oh-my-zsh'
+      tags:
+        - skip_ansible_lint
+
+    - name: set permissions of oh-my-zsh
+      file:
+        path: '~{{ nuc_user }}/.oh-my-zsh'
+        mode: 'go-w'
+        recurse: yes
+
+    - name: install zsh-autosuggestions plugin for oh-my-zsh
+      git:
+        repo: https://github.com/zsh-users/zsh-autosuggestions.git
+        dest: '~{{ nuc_user }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions'
+        clone: yes
+        version: master
+
+    - name: create .zshrc configuration file
+      template:
+        src: '{{ role_path }}/templates/zshrc.j2'
+        dest: '~{{ nuc_user }}/.zshrc'
+        backup: yes
+        mode: '0644'
+
+    - name: make zsh the default login shell
+      user:
+        name: '{{ nuc_user }}'
+        shell: /bin/zsh
+        state: present
+      become: yes
+
+    - name: generate ssh keys
+      user:
+        name: '{{ nuc_user }}'
+        generate_ssh_key: yes
+
+    - name: install vagrant plugins
+      command: |
+        vagrant plugin install nugrant vagrant-libvirt vagrant-timezone

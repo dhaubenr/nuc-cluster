@@ -1,0 +1,29 @@
+---
+
+# named provisioning block - installs Docker
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: install docker
+  block:
+    - name: add docker apt repository key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: add docker apt repositories
+      copy:
+        src: '{{ role_path }}/files/docker.list'
+        dest: /etc/apt/sources.list.d/docker.list
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: install docker packages
+      apt:
+        pkg:
+        - containerd.io
+        - docker-ce
+        - docker-ce-cli
+        update_cache: yes
+        state: present
+  become: yes

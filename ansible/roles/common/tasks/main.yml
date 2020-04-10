@@ -38,6 +38,33 @@
         state: present
   become: yes
 
+# named provisioning block - sets default environment variables
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name:
+  block:
+    - name: set LANG
+      lineinfile:
+        dest: /etc/environment
+        regexp: '^LANG'
+        line: 'LANG="en_US.UTF-8"'
+        state: present
+
+    - name: set LC_ALL
+      lineinfile:
+        dest: /etc/environment
+        regexp: '^LC_ALL'
+        line: 'LC_ALL="en_US.UTF-8"'
+        state: present
+
+    - name: set EDITOR
+      lineinfile:
+        dest: /etc/environment
+        regexp: '^EDITOR'
+        line: 'EDITOR=vi'
+        state: present
+  become: yes
+
 # named provisioning block - configures the host's secondary ip address
 # run as 'root' via ansible's 'become' directive
 # must be called with option '--ask-become-pass'
@@ -66,205 +93,6 @@
           notify:
            - apply netplan configuration
       when: ansible_distribution == 'Ubuntu'
-  become: yes
-
-# named provisioning block - installs and configures libvirt and KVM
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: add libvirt and KVM capabilities
-  block:
-    - name: install kvm and libvirtd packages and register libvirtd service
-      apt:
-        pkg:
-        - bridge-utils
-        - libvirt-bin
-        - qemu
-        - qemu-kvm
-        - virt-manager
-        update_cache: yes
-        state: present
-      notify:
-        - start libvirtd
-        - enable libvirtd
-
-    - name: add nuc user to kvm and libvirt groups
-      user:
-        name: '{{ nuc_user }}'
-        groups: libvirt,libvirt-qemu
-        append: yes
-        state: present
-  become: yes
-
-# named provisioning block - sets default environment variables
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name:
-  block:
-    - name: set VIRSH_DEFAULT_CONNECT_URI
-      lineinfile:
-        dest: /etc/environment
-        regexp: '^VIRSH_DEFAULT_CONNECT_URI'
-        line: 'VIRSH_DEFAULT_CONNECT_URI="qemu:///system"'
-        state: present
-
-    - name: set LANG
-      lineinfile:
-        dest: /etc/environment
-        regexp: '^LANG'
-        line: 'LANG="en_US.UTF-8"'
-        state: present
-
-    - name: set LC_ALL
-      lineinfile:
-        dest: /etc/environment
-        regexp: '^LC_ALL'
-        line: 'LC_ALL="en_US.UTF-8"'
-        state: present
-
-    - name: set EDITOR
-      lineinfile:
-        dest: /etc/environment
-        regexp: '^EDITOR'
-        line: 'EDITOR=vi'
-        state: present
-  become: yes
-
-# named provisioning block - installs required development tools
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: install required development tools
-  block:
-    - name: download and install go
-      unarchive:
-        src: https://dl.google.com/go/go{{ go_version }}.linux-amd64.tar.gz
-        dest: /usr/local
-        remote_src: yes
-      notify:
-        - add go to path
-
-    - name: install common development packages
-      apt:
-        pkg:
-        - apt-transport-https
-        - ca-certificates
-        - gnupg-agent
-        - software-properties-common
-        - python3-distutils
-        - python3-libvirt
-        - python3-lxml
-        - python3-pip
-        - python3-wheel
-        update_cache: yes
-        state: present
-  become: yes
-
-# named provisioning block - installs Docker
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: install docker
-  block:
-    - name: add docker apt repository key
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-
-    - name: add docker apt repositories
-      copy:
-        src: '{{ role_path }}/files/docker.list'
-        dest: /etc/apt/sources.list.d/docker.list
-        owner: root
-        group: root
-        mode: '0644'
-
-    - name: install docker packages
-      apt:
-        pkg:
-        - containerd.io
-        - docker-ce
-        - docker-ce-cli
-        update_cache: yes
-        state: present
-  become: yes
-
-# named provisioning block - installs Vagrant
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: install vagrant
-  block:
-    - name: download and install vagrant
-      apt:
-        deb: https://releases.hashicorp.com/vagrant/{{ vagrant_version }}/vagrant_{{ vagrant_version }}_x86_64.deb
-
-    - name: install vagrant and libvirt build dependency packages
-      apt:
-        pkg:
-        - ruby-libvirt
-        - vagrant
-        update_cache: yes
-        state: build-dep
-
-    - name: install vagrant and libvirt development packages
-      apt:
-        pkg:
-        - libvirt-dev
-        - libxml2-dev
-        - libxslt-dev
-        - ruby-dev
-        - zlib1g-dev
-        update_cache: yes
-        state: present
-  become: yes
-
-# named provisioning block - installs Kubernetes (kubectl)
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: install Kubernetes (kubectl)
-  block:
-    - name: add kubernetes apt repository key
-      apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        state: present
-
-    - name: add kubernetes apt repositories
-      copy:
-        src: '{{ role_path }}/files/kubernetes.list'
-        dest: /etc/apt/sources.list.d/kubernetes.list
-        owner: root
-        group: root
-        mode: '0644'
-
-    - name: install kubectl package
-      apt:
-        pkg:
-        - kubectl
-        update_cache: yes
-        state: present
-  become: yes
-
-# named provisioning block - installs optional development tools
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: install optional development tools
-  block:
-    - name: add git-lfs apt repository key
-      apt_key:
-        url: https://packagecloud.io/github/git-lfs/gpgkey
-        state: present
-
-    - name: add git-lfs apt repositories
-      copy:
-        src: '{{ role_path }}/files/github_git-lfs.list'
-        dest: /etc/apt/sources.list.d/github_git-lfs.list
-        owner: root
-        group: root
-        mode: '0644'
-
-    - name: install git-lfs package
-      apt:
-        pkg:
-        - git-lfs
-        update_cache: yes
-        state: present
   become: yes
 
 # named provisioning block - installs and configures xrdp
@@ -304,113 +132,3 @@
         update_cache: yes
         upgrade: dist
   become: yes
-
-# named provisioning block - configures libvirt storage
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: configure libvirt storage
-  block:
-    - name: create directories for mount points
-      file:
-        path: '{{ data_lv_mount_point }}'
-        mode: '0777'
-        state: directory
-
-    - name: create volume group {{ data_vg_name }}
-      lvg:
-        vg: '{{ data_vg_name }}'
-        pvs: /dev/sda
-        state: present
-
-    - name: create logical volume {{ data_lv_name }} with size {{ data_lv_size }}
-      lvol:
-        vg: '{{ data_vg_name }}'
-        lv: '{{ data_lv_name }}'
-        size: '{{ data_lv_size }}'
-
-    - name: derive lvm mapper device name from volume group {{ data_vg_name }}
-      set_fact:
-        data_vg_mapper: '{{ data_vg_name | regex_replace("^(?P<pre>\w*)-(?P<post>\w*)$", "\\g<pre>--\\g<post>") }}'
-
-    - name: create filesystem on logical volume {{ data_lv_name }} and mount it
-      filesystem:
-        fstype: xfs
-        dev: /dev/{{ data_vg_name }}/{{ data_lv_name }}
-      notify:
-        - mount filesystem on logical volume {{ data_lv_name }}
-
-    - name: define libvirt storage pool {{ libvirt_storage_pool }} and build and activate it
-      virt_pool:
-        command: define
-        name: '{{ libvirt_storage_pool }}'
-        xml: '{{ lookup("template", "{{ role_path }}/templates/storagepool.xml.j2") }}'
-        state: present
-      notify:
-        - build libvirt storage pool {{ libvirt_storage_pool }}
-  become: yes
-
-# named provisioning block - system cleanup
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: reboot and cleanup installation artifacts
-  block:
-    - name: reboot
-      reboot:
-
-    - name: cleanup apt package cache
-      apt:
-        autoclean: yes
-
-    - name: remove unused apt package dependencies
-      apt:
-        autoremove: yes
-  become: yes
-
-# name provisioning block - non-root user configuration
-# partially run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: configure user {{ nuc_user }}
-  block:
-    - name: install oh-my-zsh
-      command: |
-        git clone -c core.autocrlf=input --depth=1 https://github.com/robbyrussell/oh-my-zsh.git ~{{ nuc_user }}/.oh-my-zsh
-      args:
-        creates: '~{{ nuc_user }}/.oh-my-zsh'
-      tags:
-        - skip_ansible_lint
-
-    - name: set permissions of oh-my-zsh
-      file:
-        path: '~{{ nuc_user }}/.oh-my-zsh'
-        mode: 'go-w'
-        recurse: yes
-
-    - name: install zsh-autosuggestions plugin for oh-my-zsh
-      git:
-        repo: https://github.com/zsh-users/zsh-autosuggestions.git
-        dest: '~{{ nuc_user }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions'
-        clone: yes
-        version: master
-
-    - name: create .zshrc configuration file
-      template:
-        src: '{{ role_path }}/templates/zshrc.j2'
-        dest: '~{{ nuc_user }}/.zshrc'
-        backup: yes
-        mode: '0644'
-
-    - name: make zsh the default login shell
-      user:
-        name: '{{ nuc_user }}'
-        shell: /bin/zsh
-        state: present
-      become: yes
-
-    - name: generate ssh keys
-      user:
-        name: '{{ nuc_user }}'
-        generate_ssh_key: yes
-
-    - name: install vagrant plugins
-      command: |
-        vagrant plugin install nugrant vagrant-libvirt vagrant-timezone

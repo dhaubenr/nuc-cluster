@@ -1,0 +1,8 @@
+---
+dependencies:
+  - role: common
+  - role: development
+  - role: libvirt
+  - role: docker
+  - role: kubernetes
+  - role: vagrant

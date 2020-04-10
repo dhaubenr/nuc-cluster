@@ -3,64 +3,8 @@
   command: |
     netplan apply
 
-- name: start libvirtd
-  service:
-    name: libvirtd
-    state: started
-
-- name: enable libvirtd
-  service:
-    name: libvirtd
-    enabled: yes
-
-- name: add go to path
-  lineinfile:
-    dest: /etc/environment
-    backrefs: yes
-    regexp: 'PATH=(["])((?!.?/usr/local/go/bin).?)(["])$'
-    line: 'PATH=\1\2:/usr/local/go/bin\3'
-    state: present
-
 - name: enable xrdp
   systemd:
     name: xrdp
     enabled: yes
     state: started
-
-- name: mount filesystem on logical volume {{ data_lv_name }}
-  mount:
-    path: '{{ data_lv_mount_point }}'
-    src: /dev/mapper/{{ data_vg_mapper }}-{{ data_lv_name }}
-    fstype: xfs
-    opts: rw,relatime,attr2,inode64,noquota
-    state: present
-  changed_when: true
-  notify: change mount point permissions
-
-- name: change mount point permissions
-  file:
-    path: '{{ data_lv_mount_point }}'
-    mode: '0777'
-    state: directory
-  changed_when: true
-  notify: create libvirt storage directory
-
-- name: create libvirt storage directory
-  file:
-    path: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}'
-    mode: '0777'
-    state: directory
-
-- name: build libvirt storage pool {{ libvirt_storage_pool }}
-  virt_pool:
-    command: build
-    name: '{{ libvirt_storage_pool }}'
-  changed_when: true
-  notify:
-    - start libvirt storage pool {{ libvirt_storage_pool }}
-
-- name: start libvirt storage pool {{ libvirt_storage_pool }}
-  virt_pool:
-    command: start
-    name: '{{ libvirt_storage_pool }}'
-    state: active

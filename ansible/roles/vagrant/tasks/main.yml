@@ -1,0 +1,30 @@
+---
+
+# named provisioning block - installs Vagrant
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: install vagrant
+  block:
+    - name: download and install vagrant
+      apt:
+        deb: https://releases.hashicorp.com/vagrant/{{ vagrant_version }}/vagrant_{{ vagrant_version }}_x86_64.deb
+
+    - name: install vagrant and libvirt build dependency packages
+      apt:
+        pkg:
+        - ruby-libvirt
+        - vagrant
+        update_cache: yes
+        state: build-dep
+
+    - name: install vagrant and libvirt development packages
+      apt:
+        pkg:
+        - libvirt-dev
+        - libxml2-dev
+        - libxslt-dev
+        - ruby-dev
+        - zlib1g-dev
+        update_cache: yes
+        state: present
+  become: yes

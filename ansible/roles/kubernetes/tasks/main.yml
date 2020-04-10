@@ -1,0 +1,27 @@
+---
+
+# named provisioning block - installs Kubernetes (kubectl)
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: install Kubernetes (kubectl)
+  block:
+    - name: add kubernetes apt repository key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: add kubernetes apt repositories
+      copy:
+        src: '{{ role_path }}/files/kubernetes.list'
+        dest: /etc/apt/sources.list.d/kubernetes.list
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: install kubectl package
+      apt:
+        pkg:
+        - kubectl
+        update_cache: yes
+        state: present
+  become: yes

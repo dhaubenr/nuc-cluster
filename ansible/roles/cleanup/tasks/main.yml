@@ -1,0 +1,18 @@
+---
+
+# named provisioning block - system cleanup
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: reboot and cleanup installation artifacts
+  block:
+    - name: reboot
+      reboot:
+
+    - name: cleanup apt package cache
+      apt:
+        autoclean: yes
+
+    - name: remove unused apt package dependencies
+      apt:
+        autoremove: yes
+  become: yes
