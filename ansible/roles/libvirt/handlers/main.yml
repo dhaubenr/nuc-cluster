@@ -9,6 +9,12 @@
     name: libvirtd
     enabled: yes
 
+- name: build libvirt storage pool
+  virt_pool:
+    command: build
+    name: '{{ libvirt_storage_pool }}'
+    state: active
+
 - name: autostart libvirt storage pool
   virt_pool:
     autostart: yes

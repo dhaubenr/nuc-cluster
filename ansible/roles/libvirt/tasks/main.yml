@@ -16,8 +16,8 @@
         update_cache: yes
         state: present
       notify:
-        - start_libvirtd
-        - enable_libvirtd
+        - start libvirtd
+        - enable libvirtd
 
     - name: add nuc user to kvm and libvirt groups
       user:
@@ -78,7 +78,7 @@
         src: /dev/mapper/{{ data_vg_mapper }}-{{ data_lv_name }}
         fstype: xfs
         opts: rw,relatime,attr2,inode64,noquota
-        state: present
+        state: mounted
 
     - name: change mount point permissions
       file:
@@ -88,22 +88,23 @@
 
     - name: create libvirt storage directory
       file:
-        path: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}'
+        path: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}'
         mode: '0777'
         state: directory
 
+    # define the libvirt storage pool using the provided template
+    # the handlers are always notified, regardless if the storage pool
+    # existed prior to running this task or not
+    # this ensures that the storage pool is properly initialized and started
+    # under all circumstances
     - name: define libvirt storage pool {{ libvirt_storage_pool }}
       virt_pool:
         command: define
         name: '{{ libvirt_storage_pool }}'
         xml: '{{ lookup("template", "{{ role_path }}/templates/storagepool.xml.j2") }}'
         state: present
-
-    - name: build libvirt storage pool {{ libvirt_storage_pool }} and activate it
-      virt_pool:
-        command: build
-        name: '{{ libvirt_storage_pool }}'
-        state: active
+      changed_when: true
       notify:
-        - start libvirt storage pool
+        - build libvirt storage pool
+        - autostart libvirt storage pool
   become: yes
