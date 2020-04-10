@@ -27,11 +27,14 @@
         mode: '0440'
         timeout: 120
 
+    # handlers will always be triggered by setting the 'changed' condition
+    # of the task to 'true'
     - name: install go
       unarchive:
         src: /root/go{{ go_version }}.linux-amd64.tar.gz
         dest: /usr/local
         remote_src: yes
+      changed_when: true
       notify:
         - add go to path
   become: yes

@@ -2,9 +2,11 @@
 - name: apply netplan configuration
   command: |
     netplan apply
+  become: yes
 
 - name: enable xrdp
   systemd:
     name: xrdp
     enabled: yes
     state: started
+  become: yes

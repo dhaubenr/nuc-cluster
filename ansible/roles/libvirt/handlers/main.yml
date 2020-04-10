@@ -3,19 +3,23 @@
   service:
     name: libvirtd
     state: restarted
+  become: yes
 
 - name: enable libvirtd
   service:
     name: libvirtd
     enabled: yes
+  become: yes
 
 - name: build libvirt storage pool
   virt_pool:
     command: build
     name: '{{ libvirt_storage_pool }}'
     state: active
+  become: yes
 
 - name: autostart libvirt storage pool
   virt_pool:
     autostart: yes
     name: '{{ libvirt_storage_pool }}'
+  become: yes

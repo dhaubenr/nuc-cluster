@@ -3,6 +3,7 @@
   lineinfile:
     dest: /etc/environment
     backrefs: yes
-    regexp: 'PATH=(["])((?!.?/usr/local/go/bin).?)(["])$'
+    regexp: 'PATH=(["]*)((?!.*?/usr/local/go/bin).*?)(["]*)$'
     line: 'PATH=\1\2:/usr/local/go/bin\3'
     state: present
+  become: yes
