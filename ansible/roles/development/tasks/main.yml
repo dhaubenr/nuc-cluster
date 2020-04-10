@@ -1,0 +1,63 @@
+---
+
+# named provisioning block - installs required development tools
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: install required development tools
+  block:
+    - name: install common development packages
+      apt:
+        pkg:
+        - apt-transport-https
+        - ca-certificates
+        - gnupg-agent
+        - software-properties-common
+        - python3-distutils
+        - python3-libvirt
+        - python3-lxml
+        - python3-pip
+        - python3-wheel
+        update_cache: yes
+        state: present
+
+    - name: download go
+      get_url:
+        url: https://dl.google.com/go/go{{ go_version }}.linux-amd64.tar.gz
+        dest: /root/go{{ go_version }}.linux-amd64.tar.gz
+        mode: '0440'
+        timeout: 120
+
+    - name: install go
+      unarchive:
+        src: /root/go{{ go_version }}.linux-amd64.tar.gz
+        dest: /usr/local
+        remote_src: yes
+      notify:
+        - add go to path
+  become: yes
+
+# named provisioning block - installs optional development tools
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: install optional development tools
+  block:
+    - name: add git-lfs apt repository key
+      apt_key:
+        url: https://packagecloud.io/github/git-lfs/gpgkey
+        state: present
+
+    - name: add git-lfs apt repositories
+      copy:
+        src: '{{ role_path }}/files/github_git-lfs.list'
+        dest: /etc/apt/sources.list.d/github_git-lfs.list
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: install git-lfs package
+      apt:
+        pkg:
+        - git-lfs
+        update_cache: yes
+        state: present
+  become: yes

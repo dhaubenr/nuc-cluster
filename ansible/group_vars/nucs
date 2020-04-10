@@ -1,7 +1,7 @@
 ---
 
 # common variables for all 'nucs'
-go_version: 1.14.1
+go_version: 1.14.2
 vagrant_version: 2.2.7
 
 secondary_ip_prefix: 192.168.10.10

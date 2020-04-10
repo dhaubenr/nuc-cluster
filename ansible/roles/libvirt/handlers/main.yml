@@ -1,0 +1,15 @@
+---
+- name: start libvirtd
+  service:
+    name: libvirtd
+    state: restarted
+
+- name: enable libvirtd
+  service:
+    name: libvirtd
+    enabled: yes
+
+- name: autostart libvirt storage pool
+  virt_pool:
+    autostart: yes
+    name: '{{ libvirt_storage_pool }}'
