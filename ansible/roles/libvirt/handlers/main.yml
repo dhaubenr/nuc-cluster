@@ -11,6 +11,19 @@
     enabled: yes
   become: yes
 
+- name: create libvirt network
+  virt_net:
+    command: create
+    name: kubernetes
+    state: active
+  become: yes
+
+- name: autostart libvirt network
+  virt_net:
+    autostart: yes
+    name: kubernetes
+  become: yes
+
 - name: build libvirt storage pool
   virt_pool:
     command: build

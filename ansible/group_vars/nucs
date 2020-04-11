@@ -9,5 +9,7 @@ secondary_ip_prefix: 192.168.10.10
 data_vg_name: data-vg
 data_lv_name: data_1
 data_lv_mount_point: /mnt/data
+
+libvirt_network_prefix: 192.168.20
 libvirt_storage_directory: storage_pools
 libvirt_storage_pool: kubernetes
