@@ -44,6 +44,40 @@
         state: present
   become: yes
 
+# named provisioning block - configures libvirt networking
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: configure libvirt network
+  block:
+
+    # handlers will always be triggered by setting the 'changed' condition
+    # of the task to 'true'
+    - name: define network kubernetes
+      virt_net:
+        command: define
+        name: kubernetes
+        xml: '{{ lookup("template", "{{ role_path }}/templates/network.xml.j2") }}'
+        state: present
+        changed_when: true
+      notify:
+        - create libvirt network
+        - autostart libvirt network
+
+    - name: prepare route definition variables
+      block:
+        - name: get current host index as list variable
+          set_fact:
+            current_host_index_as_list: '{{ host_index | list }}'
+
+        - name: compute list of other host indices
+          set_fact:
+            other_host_indices: "{{ groups['nucs'] | map('extract', hostvars, 'host_index') | list | difference(current_host_index_as_list) }}"
+
+    - name: add IPv4 routes to other hosts' libvirt networks
+      command: 'ip -4 route add {{ libvirt_network_prefix }}{{ item }}.0/24 via {{ secondary_ip_prefix }}{{ item }}'
+      loop: '{{ other_hosts_indices }}'
+  become: yes
+
 # named provisioning block - configures libvirt storage
 # run as 'root' via ansible's 'become' directive
 # must be called with option '--ask-become-pass'
