@@ -1,7 +1,0 @@
-#cloud-config
-{% for guest_password in query('password', '{{ role_path }}/credentials/{{ inventory_hostname }}_k8s_{{ item }} length=15 chars=ascii_letters,digits') %}
-password: {{ guest_password }}
-{% endfor %}
-chpasswd: { expire: False }
-ssh_pwauth: True
-hostname: {{ inventory_hostname }}-k8s-{{ item }}

@@ -8,10 +8,10 @@
 
     # handlers will always be triggered by setting the 'changed' condition
     # of the task to 'true'
-    - name: define network kubernetes
+    - name: define network {{ libvirt_network_name }}
       virt_net:
         command: define
-        name: kubernetes
+        name: '{{ libvirt_network_name }}'
         xml: '{{ lookup("template", "{{ role_path }}/templates/network.xml.j2") }}'
         state: present
       changed_when: true
@@ -142,21 +142,36 @@
           - '/var/lib/libvirt/images/{{ guest_os_cloud_image }}.qcow2'
         chdir: /root/
 
-    - name: create cloud image configuration file
-      template:
-        src: '{{ role_path }}/templates/cloud_config_file.txt.j2'
-        dest: '/root/{{ inventory_hostname }}_k8s_{{ item }}.txt'
-        owner: root
-        group: root
-        mode: '0644'
-      loop: '{{ range(1, 4, 1) | list }}'
+    - name: create cloud image configuration seed
+      block:
+        - name:
+          set_fact:
+            libvirt_guest_password: |
+              '{{ lookup("password", role_path + "/credentials/" + inventory_hostname + "libvirt_guests" length=15 chars=ascii_letters,digits) }}'
 
-    - name: create cloud image configuration ISO
-      command:
-        argv:
-          - cloud-localds
-          - '/var/lib/libvirt/images/{{ inventory_hostname }}_k8s_{{ item }}.iso'
-          - '{{ inventory_hostname }}_k8s_{{ item }}.txt'
-        chdir: /root/
-      loop: '{{ range(1, 4, 1) | list }}'
+        - name: create cloud image configuration files
+          template:
+            src: '{{ role_path }}/templates/cloud_seed.txt.j2'
+            dest: '/root/{{ inventory_hostname }}_k8s_{{ item }}.txt'
+            owner: root
+            group: root
+            mode: '0644'
+          loop: '{{ range(1, libvirt_guest_range_max, 1) | list }}'
+
+        - name: create cloud image configuration ISOs
+          command:
+            argv:
+              - cloud-localds
+              - '/var/lib/libvirt/images/{{ inventory_hostname }}_k8s_{{ item }}.iso'
+              - '{{ inventory_hostname }}_k8s_{{ item }}.txt'
+            chdir: /root/
+          loop: '{{ range(1, libvirt_guest_range_max, 1) | list }}'
+      become: yes
+
+    - name: create libvirt guests
+      virt:
+        command: define
+        xml: '{{ lookup("template", "{{ role_path }}/templates/guest.xml.j2") }}'
+        autostart: yes
+      loop: '{{ range(1, libvirt_guest_range_max, 1) | list }}'
   become: yes

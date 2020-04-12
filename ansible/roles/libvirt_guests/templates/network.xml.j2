@@ -1,11 +1,14 @@
 <network>
-  <name>kubernetes</name>
+  <name>{{ libvirt_network_name }}</name>
   <forward mode='route'>
   </forward>
   <bridge name='virbr1' stp='on' delay='0'/>
   <ip address='{{ libvirt_network_prefix }}{{ host_index }}.1' netmask='255.255.255.0'>
     <dhcp>
       <range start='{{ libvirt_network_prefix }}{{ host_index }}.50' end='{{ libvirt_network_prefix }}{{ host_index }}.254'/>
+{% for guest_index in range(1, {{ libvirt_guest_range_max }}, 1) %}
+      <host mac='{{ libvirt_network_guest_mac_prefix }}:{{ "%02d" | format(host_index | int) }}:{{ "%02d" | format(guest_index | int) }}' name='{{ inventory_hostname }}-k8s-{{ guest_index }}' ip='{{ libvirt_network_prefix }}{{ host_index }}.1{{ guest_index }}'/>
+{% endfor %}
     </dhcp>
   </ip>
 </network>

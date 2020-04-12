@@ -1,6 +1,14 @@
 ---
 
+libvirt_network_prefix: 192.168.20
+libvirt_network_name: kubernetes
+libvirt_network_guest_mac_prefix: '52:54:00:b0:' # 52:54:00:b0:XX:YY
+
+libvirt_storage_directory: storage_pools
+libvirt_storage_pool: kubernetes
+
 guest_os_cloud_image: CentOS-7-x86_64-GenericCloud
 guest_os_cloud_image_url: https://cloud.centos.org/centos/7/images/{{ guest_os_cloud_image }}.qcow2.xz
 guest_os_cloud_image_size: 10G
-guests_per_host: 3
+
+libvirt_guest_range_max: '{{ libvirt_guests_per_host + 1 }}'
