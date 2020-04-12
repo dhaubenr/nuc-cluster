@@ -82,6 +82,7 @@
           command: |
             nmcli c modify {{ wired_conn.stdout }} ipv4.addresses "{{ secondary_ip_prefix }}{{ host_index }}/24"
       when: ansible_distribution == 'Linux Mint'
+      become: yes
 
     # handlers will always be triggered by setting the 'changed' condition
     # of the task to 'true'
@@ -97,6 +98,7 @@
           notify:
            - apply netplan configuration
       when: ansible_distribution == 'Ubuntu'
+      become: yes
   become: yes
 
 # named provisioning block - installs and configures xrdp
@@ -127,8 +129,8 @@
         groups: ssl-cert
         append: yes
         state: present
-  become: yes
   when: ansible_distribution == 'Linux Mint'
+  become: yes
 
 # named provisioning block - upgrade distribution
 # run as 'root' via ansible's 'become' directive

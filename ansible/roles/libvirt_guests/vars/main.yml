@@ -1,0 +1,6 @@
+---
+
+guest_os_cloud_image: CentOS-7-x86_64-GenericCloud
+guest_os_cloud_image_url: https://cloud.centos.org/centos/7/images/{{ guest_os_cloud_image }}.qcow2.xz
+guest_os_cloud_image_size: 10G
+guests_per_host: 3
