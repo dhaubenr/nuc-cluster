@@ -2,4 +2,4 @@
 password: {{ libvirt_guest_password }}
 chpasswd: { expire: False }
 ssh_pwauth: True
-hostname: {{ inventory_hostname }}-k8s-{{ item }}
+hostname: {{ inventory_hostname_short }}-k8s-{{ item }}

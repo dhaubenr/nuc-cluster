@@ -5,22 +5,12 @@
 # must be called with option '--ask-become-pass'
 - name: configure apt source repositories
   block:
-    - name: add source apt repositories (Linux Mint)
-      copy:
-        src: '{{ role_path }}/files/official-source-repositories.list'
-        dest: /etc/apt/sources.list.d/official-source-repositories.list
-        owner: root
-        group: root
-        mode: '0644'
-      when: ansible_distribution == 'Linux Mint'
-
     - name: enable source apt repositories (Ubuntu)
       replace:
         path: /etc/apt/sources.list
         regexp: '^#(.*deb-src.*)'
         replace: '\1'
         backup: yes
-      when: ansible_distribution == 'Ubuntu'
 
     - name: install basic packages
       apt:
@@ -71,65 +61,18 @@
 # must be called with option '--ask-become-pass'
 - name: add secondary (static) ip address
   block:
-    - name: configure network manager (Linux Mint)
-      block:
-        - name: get wired connection name
-          shell: |
-            nmcli c | grep {{ eth0_device_name }} | awk '{print $4}'
-          register: wired_conn
-
-        - name: add secondary ip address
-          command: |
-            nmcli c modify {{ wired_conn.stdout }} ipv4.addresses "{{ secondary_ip_prefix }}{{ host_index }}/24"
-      when: ansible_distribution == 'Linux Mint'
-      become: yes
 
     # handlers will always be triggered by setting the 'changed' condition
     # of the task to 'true'
     - name: configure netplan (Ubuntu)
-      block:
-        - name: create additional netplan interface configuration file
-          template:
-            src: '{{ role_path }}/templates/02-static.yaml.j2'
-            dest: /etc/netplan/02-static.yaml
-            backup: no
-            mode: '0644'
-          changed_when: true
-          notify:
-           - apply netplan configuration
-      when: ansible_distribution == 'Ubuntu'
-      become: yes
-  become: yes
-
-# named provisioning block - installs and configures xrdp
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: add xrdp capabilities
-  block:
-
-    # handlers will always be triggered by setting the 'changed' condition
-    # of the task to 'true'
-    - name: install xrdp packages and register xrdp service
-      apt:
-        pkg:
-        - xorgxrdp
-        - xorg-video-abi-23
-        - xrdp
-        - xserver-xorg-core
-        - xserver-xorg-video-intel
-        update_cache: yes
-        state: present
+      template:
+        src: '{{ role_path }}/templates/02-static.yaml.j2'
+        dest: /etc/netplan/02-static.yaml
+        backup: no
+        mode: '0644'
       changed_when: true
       notify:
-        - enable xrdp
-
-    - name: add xrdp user to ssl-cert group
-      user:
-        name: xrdp
-        groups: ssl-cert
-        append: yes
-        state: present
-  when: ansible_distribution == 'Linux Mint'
+        - apply netplan configuration
   become: yes
 
 # named provisioning block - upgrade distribution
