@@ -1,4 +1,5 @@
 ---
+
 - name: apply netplan configuration
   command: |
     netplan apply

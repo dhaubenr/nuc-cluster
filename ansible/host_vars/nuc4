@@ -1,4 +1,5 @@
 ---
+
 host_index: 4
 eth0_device_name: eno1
 secondary_disk: /dev/sda

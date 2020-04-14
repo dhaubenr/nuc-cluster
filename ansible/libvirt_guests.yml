@@ -1,0 +1,5 @@
+---
+- hosts: nucs
+  roles:
+    - role: libvirt_guests
+      tags: [ libvirt_guests ]

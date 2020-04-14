@@ -1,4 +1,5 @@
 ---
+
 - name: add go to path
   lineinfile:
     dest: /etc/environment
