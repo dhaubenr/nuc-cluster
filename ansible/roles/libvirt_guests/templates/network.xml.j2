@@ -1,6 +1,9 @@
 <network>
   <name>{{ libvirt_network_name }}</name>
-  <forward mode='route'>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
   </forward>
   <bridge name='virbr1' stp='on' delay='0'/>
   <ip address='{{ libvirt_network_prefix }}{{ host_index }}.1' netmask='255.255.255.0'>

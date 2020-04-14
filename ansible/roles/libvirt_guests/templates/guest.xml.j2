@@ -37,6 +37,7 @@
     <interface type='network'>
       <mac address='{{ libvirt_network_guest_mac_prefix }}{{ "%02d" | format(host_index | int) }}:{{ "%02d" | format(item | int) }}'/>
       <source network='{{ libvirt_network_name }}' bridge='virbr1'/>
+      <target dev='vnet0'/>
       <model type='virtio'/>
       <alias name='net0'/>
     </interface>
