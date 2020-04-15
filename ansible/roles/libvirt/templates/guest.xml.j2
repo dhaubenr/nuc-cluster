@@ -6,6 +6,11 @@
     <partition>/machine</partition>
   </resource>
   <cpu mode='host-passthrough'/>
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+  </features>
   <os>
     <type arch='x86_64' machine='pc-i440fx-bionic'>hvm</type>
   </os>
