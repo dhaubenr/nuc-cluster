@@ -27,6 +27,7 @@ d-i netcfg/get_hostname string unassigned-hostname
 d-i netcfg/get_domain string unassigned-domain
 d-i netcfg/hostname string {{ host_name }}
 d-i netcfg/wireless_wep string
+d-i netcfg/do_not_use_netplan boolean true
 d-i hw-detect/load_firmware boolean true
 
 ### Mirror settings
@@ -76,13 +77,14 @@ d-i user-setup/encrypt-home boolean false
 
 ### Apt setup
 d-i apt-setup/use_mirror boolean false
+d-i apt-setup/local0/source boolean true
 
 ### Kernel installation
 d-i base-installer/kernel/altmeta string hwe-18.04
 
 ### Package selection
 tasksel tasksel/first multiselect ubuntu-server
-d-i pkgsel/include string openssh-server build-essential
+d-i pkgsel/include string openssh-server build-essential ifupdown
 d-i pkgsel/upgrade select none
 d-i pkgsel/language-packs multiselect en
 d-i pkgsel/install-language-support boolean false
@@ -115,8 +117,11 @@ d-i preseed/late_command string in-target mkdir /home/{{ user.login }}/.ssh; \
                                 in-target /bin/sed -i "s/XKBOPTIONS=\"[a-z]*\"/XKBOPTIONS=\"\"/g" /etc/default/keyboard; \
                                 in-target /usr/sbin/dpkg-reconfigure -fnoninteractive keyboard-configuration; \
                                 in-target /usr/sbin/update-locale LC_TIME=en_US.UTF-8 LC_MESSAGES=POSIX; \
+                                in-target /usr/bin/apt-get purge -y netplan.io; \
+                                in-target /bin/rm -rf /etc/netplan; \
                                 in-target sh -c 'echo "GRUB_RECORDFAIL_TIMEOUT=0" >> /etc/default/grub'; \
                                 in-target /bin/sed -i "s/#GRUB_GFXMODE=[0-9a-z]*/GRUB_GFXMODE=800x600/g" /etc/default/grub; \
                                 in-target /bin/sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT=\"[a-z]*\"/GRUB_CMDLINE_LINUX_DEFAULT=\"nomodeset\"/g" /etc/default/grub; \
+                                in-target /bin/sed -i "s/GRUB_CMDLINE_LINUX=\"[0-9a-zA-Z=.]*/& netcfg\/do_not_use_netplan=true/g" /etc/default/grub; \
                                 in-target /usr/sbin/update-grub
 ubiquity ubiquity/summary note
