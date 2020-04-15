@@ -5,8 +5,6 @@
       tags: [ common ]
     - role: development
       tags: [ development ]
-    - role: libvirt
-      tags: [ libvirt ]
     - role: docker
       tags: [ docker ]
     - role: vagrant
@@ -15,5 +13,5 @@
       tags: [ kubernetes ]
     - role: user
       tags: [ user ]
-    - role: cleanup
-      tags: [ cleanup ]
+    - role: finish
+      tags: [ finish ]

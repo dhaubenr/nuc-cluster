@@ -11,3 +11,24 @@
     name: libvirtd
     enabled: yes
   become: yes
+
+- name: start libvirt network
+  virt_net:
+    name: '{{ libvirt_network_name }}'
+    state: active
+
+- name: autostart libvirt network
+  virt_net:
+    autostart: yes
+    name: '{{ libvirt_network_name }}'
+
+- name: build libvirt storage pool
+  virt_pool:
+    command: build
+    name: '{{ libvirt_storage_pool }}'
+    state: active
+
+- name: autostart libvirt storage pool
+  virt_pool:
+    autostart: yes
+    name: '{{ libvirt_storage_pool }}'

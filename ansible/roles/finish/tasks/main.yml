@@ -1,6 +1,6 @@
 ---
 
-# named provisioning block - system cleanup
+# named provisioning block - finish system setup
 # run as 'root' via ansible's 'become' directive
 # must be called with option '--ask-become-pass'
 - name: reboot and cleanup installation artifacts

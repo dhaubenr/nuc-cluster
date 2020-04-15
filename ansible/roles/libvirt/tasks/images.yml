@@ -1,0 +1,99 @@
+---
+
+# named provisioning block - uses local Docker container to cache Linux cloud image
+- name: download Linux cloud image to local nuc-nginx Docker container
+  block:
+    - name: determine if Docker container nuc-nginx is running
+      delegate_to: localhost
+      docker_container_info:
+        name: nuc-nginx
+      register: nuc_nginx_info
+
+    - name:
+      block:
+        - name: add Docker container nuc-nginx to inventory
+          add_host:
+            name: nuc-nginx
+            ansible_connection: docker
+
+        - name: download Linux cloud image in Docker container nuc-nginx
+          delegate_to: nuc-nginx
+          get_url:
+            url: '{{ guest_os_cloud_image_url }}'
+            validate_certs: no
+            dest: /usr/share/nginx/html/
+            mode: '0644'
+
+        - name: check if Linux cloud image download was successful
+          delegate_to: nuc-nginx
+          stat:
+            path: '/usr/share/nginx/html/{{ guest_os_cloud_image }}.qcow2.xz'
+          register: local_cloud_image
+      when: nuc_nginx_info.exists
+  run_once: yes
+  tags: [ docker ]
+
+# named provisioning block - prepares Linux cloud image for use with libvirt
+- name: prepare Linux cloud image for libvirt
+  block:
+    - name: download and extract latest Linux cloud image
+      block:
+        - name: download cloud image from WWW URL
+          get_url:
+            url: '{{ guest_os_cloud_image_url }}'
+            dest: /tmp/
+            mode: '0644'
+          when: ( local_cloud_image is undefined ) or
+                ( local_cloud_image.stat.isreg is undefined ) or
+                ( not local_cloud_image.stat.isreg )
+
+        - name: download cloud image from local Docker container nuc-nginx
+          get_url:
+            url: '{{ guest_os_cloud_image_cache_url }}'
+            dest: /tmp/
+            mode: '0644'
+          when:
+            - local_cloud_image is defined
+            - local_cloud_image.stat.isreg is defined
+            - local_cloud_image.stat.isreg
+
+        - name: extract cloud image
+          command:
+            cmd: 'unxz --force --keep {{ guest_os_cloud_image }}.qcow2.xz'
+            chdir: /tmp/
+
+    - name: make Linux cloud image available as libvirt volume
+      block:
+        - name: get user and group information from passwd database
+          getent:
+            database: passwd
+            key: libvirt-qemu
+
+        - name: create Linux cloud volume configuration file
+          template:
+            src: '{{ role_path }}/templates/cloud_volume.xml.j2'
+            dest: /tmp/cloud_volume.xml
+            owner: '{{ nuc_user }}'
+            group: '{{ nuc_user }}'
+            mode: '0644'
+
+        - name: create Linux cloud image volume
+          command:
+            argv:
+              - virsh
+              - vol-create
+              - '{{ libvirt_storage_pool }}'
+              - /tmp/cloud_volume.xml
+            chdir: /tmp/
+            creates: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{  guest_os_cloud_image }}.qcow2'
+
+        - name: upload Linux cloud image to image volume
+          command:
+            argv:
+              - virsh
+              - vol-upload
+              - '{{ guest_os_cloud_image }}.qcow2'
+              - '/tmp/{{ guest_os_cloud_image }}.qcow2'
+              - --pool
+              - '{{ libvirt_storage_pool }}'
+            chdir: /tmp/

@@ -1,0 +1,65 @@
+---
+
+# named provisioning block - creates Linux cloud image instantiation seed
+# partially run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: create Linux cloud image configuration seed
+  block:
+    - name: generate libvirt guest password
+      set_fact:
+        libvirt_guest_password: |
+          '{{ lookup("password", role_path + "/credentials/" + inventory_hostname_short + "_libvirt_guest length=15 chars=ascii_letters,digits") }}'
+
+    - name: create cloud image configuration files
+      template:
+        src: '{{ role_path }}/templates/cloud_seed.txt.j2'
+        dest: '/tmp/seed_{{ inventory_hostname_short }}_k8s_{{ item }}.txt'
+        owner: '{{ nuc_user }}'
+        group: '{{ nuc_user }}'
+        mode: '0644'
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: create cloud image configuration ISOs
+      command:
+        argv:
+          - cloud-localds
+          - '/var/lib/libvirt/images/seed_{{ inventory_hostname_short }}_k8s_{{ item }}.iso'
+          - '/tmp/seed_{{ inventory_hostname_short }}_k8s_{{ item }}.txt'
+        chdir: /tmp/
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+      become: yes
+
+# named provisioning block - creates libvirt guests (aka domains)
+- name: create libvirt guests
+  block:
+    - name: get user and group information from passwd database
+      getent:
+        database: passwd
+        key: libvirt-qemu
+
+    - name: create libvirt guest volume configuration files
+      template:
+        src: '{{ role_path }}/templates/guest_volume.xml.j2'
+        dest: '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
+        owner: '{{ nuc_user }}'
+        group: '{{ nuc_user }}'
+        mode: '0644'
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: create libvirt guest volumes
+      command:
+        argv:
+          - virsh
+          - vol-create
+          - '{{ libvirt_storage_pool }}'
+          - '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
+        chdir: /tmp/
+        creates: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2'
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: create libvirt guest domains
+      virt:
+        command: define
+        xml: '{{ lookup("template", "{{ role_path }}/templates/guest.xml.j2") }}'
+        autostart: yes
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
