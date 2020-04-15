@@ -1,0 +1,64 @@
+---
+
+# named provisioning block - configures libvirt host networking
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: configure libvirt host
+  block:
+    - name: enable IPv4 package forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        sysctl_set: yes
+        state: present
+        reload: yes
+  become: yes
+
+# named provisioning block - configures libvirt networking
+# partially run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: configure libvirt network
+  block:
+
+    # handlers will always be triggered by setting the 'changed' condition
+    # of the task to 'true'
+    - name: define network {{ libvirt_network_name }}
+      virt_net:
+        command: define
+        name: '{{ libvirt_network_name }}'
+        xml: '{{ lookup("template", "{{ role_path }}/templates/network.xml.j2") }}'
+        state: present
+      changed_when: true
+      notify:
+        - start libvirt network
+        - autostart libvirt network
+
+    - name: run libvirt network handlers
+      meta: flush_handlers
+
+    - name: prepare route definition variables
+      block:
+        - name: get current host index as list variable
+          set_fact:
+            current_host_index_as_list: '{{ [host_index] | list }}'
+
+        - name: compute list of other host indices
+          set_fact:
+            other_host_indices: "{{ groups['nucs'] | map('extract', hostvars, 'host_index') | list | difference(current_host_index_as_list) }}"
+
+    - name: add IPv4 routes to other hosts' libvirt networks
+      command:
+        cmd: 'ip -4 route add {{ libvirt_network_prefix }}{{ item }}.0/24 via {{ secondary_ip_prefix }}{{ item }}'
+      ignore_errors: yes
+      loop: '{{ other_host_indices }}'
+      become: yes
+
+    - name: update /etc/hosts to include all libvirt guests
+      lineinfile:
+        path: '/etc/hosts'
+        regexp: '.*{{ inventory_hostname_short }}-k8s-{{ item }}$'
+        line: '{{ libvirt_network_prefix }}{{ host_index }}.1{{ item }} {{ inventory_hostname_short }}-k8s-{{ item }}'
+        state: present
+        backup: yes
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+      become: yes

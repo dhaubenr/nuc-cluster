@@ -1,0 +1,102 @@
+---
+
+# named provisioning block - removes all custom libvirt resources
+# partially run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: remove all custom libvirt resources
+  block:
+    - name: destroy libvirt guest domains
+      virt:
+        name: '{{ inventory_hostname_short }}-k8s-{{ item }}'
+        state: destroyed
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: undefine libvirt guest domains
+      virt:
+        command: undefine
+        name: '{{ inventory_hostname_short }}-k8s-{{ item }}'
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: delete libvirt guest images
+      command:
+        argv:
+          - virsh
+          - vol-delete
+          - --pool
+          - '{{ libvirt_storage_pool }}'
+          - '{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2'
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: delete Linux cloud image
+      command:
+        argv:
+          - virsh
+          - vol-delete
+          - --pool
+          - '{{ libvirt_storage_pool }}'
+          - '{{ guest_os_cloud_image }}.qcow2'
+
+    - name: destroy libvirt network {{ libvirt_network_name }}
+      virt_net:
+        name: '{{ libvirt_network_name }}'
+        state: inactive
+
+    - name: undefine libvirt network {{ libvirt_network_name }}
+      virt_net:
+        name: '{{ libvirt_network_name }}'
+        state: absent
+
+    - name: prepare route definition variables
+      block:
+        - name: get current host index as list variable
+          set_fact:
+            current_host_index_as_list: '{{ [host_index] | list }}'
+
+        - name: compute list of other host indices
+          set_fact:
+            other_host_indices: "{{ groups['nucs'] | map('extract', hostvars, 'host_index') | list | difference(current_host_index_as_list) }}"
+
+    - name: delete IPv4 routes to other hosts' libvirt networks
+      command:
+        cmd: 'ip -4 route delete {{ libvirt_network_prefix }}{{ item }}.0/24 via {{ secondary_ip_prefix }}{{ item }}'
+      ignore_errors: yes
+      loop: '{{ other_host_indices }}'
+      become: yes
+
+    - name: update /etc/hosts to remove all libvirt guests
+      lineinfile:
+        path: '/etc/hosts'
+        regexp: '.*{{ inventory_hostname_short }}-k8s-{{ item }}$'
+        state: absent
+        backup: yes
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+      become: yes
+
+    - name: remove cloud image configuration ISOs
+      file:
+        path: '/var/lib/libvirt/images/seed_{{ inventory_hostname_short }}_k8s_{{ item }}.iso'
+        state: absent
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+      become: yes
+
+    - name: remove temporary seed files
+      file:
+        path: '/tmp/seed_{{ inventory_hostname_short }}_k8s_{{ item }}.txt'
+        state: absent
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: remove temporary volume definition files
+      file:
+        path: '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
+        state: absent
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: remove temporary Linux cloud files
+      file:
+        path: '{{ item }}'
+        state: absent
+      with_items:
+        - '/tmp/cloud_volume.xml'
+        - '/tmp/{{ guest_os_cloud_image }}.qcow2'
+        - '/tmp/{{ guest_os_cloud_image }}.qcow2.xz'
+  ignore_errors: yes

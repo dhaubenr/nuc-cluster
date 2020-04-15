@@ -1,0 +1,6 @@
+---
+- hosts: nucs
+  tasks:
+    - include_role:
+        name: libvirt
+        tasks_from: cleanup.yml

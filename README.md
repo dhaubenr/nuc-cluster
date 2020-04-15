@@ -97,7 +97,23 @@ for i in $(seq 2 4); do echo "nuc$i" >> $HOME/.dsh/group/nuc.worker; done
   ```bash
   source env/bin/activate
   cd ansible
+  
   # if you want to provision specific NUCs use the '--limit' option
   # make sure 'nuc_user' refers to the preseeded user in Ubuntu 18.04 LTS
-  ansible-playbook -i inventory nucs.yml --extra-vars "nuc_user=$(whoami)" --ask-become-pass [--limit nucs[0]]
+  
+  # provision everything (setup and libvirt)
+  ansible-playbook -v -i inventory site.yml --extra-vars "nuc_user=$(whoami)" --ask-become-pass [--limit nucs[0]]
+
+  # provision setup only
+  ansible-playbook -v -i inventory setup.yml --extra-vars "nuc_user=$(whoami)" --ask-become-pass [--limit nucs[0]]
+  # or use tags
+  ansible-playbook -v -i inventory site.yml --extra-vars "nuc_user=$(whoami)" --tags "common,development,docker,vagrant,kubernetes,user,finish" --ask-become-pass [--limit nucs[0]]
+
+  # provision libvirt only (requires 'setup')
+  ansible-playbook -v -i inventory libvirt.yml --extra-vars "nuc_user=$(whoami)" --ask-become-pass [--limit nucs[0]]
+  # or use tags
+  ansible-playbook -v -i inventory site.yml --extra-vars "nuc_user=$(whoami)" --tags "libvirt" --ask-become-pass [--limit nucs[0]]
+
+  # de-provision (rollback) libvirt
+  ansible-playbook -v -i inventory rollback.yml --extra-vars "nuc_user=$(whoami)" --ask-become-pass [--limit nucs[0]]
   ```

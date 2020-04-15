@@ -1,0 +1,49 @@
+---
+
+# named provisioning block - installs and configures libvirt and KVM
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: add libvirt and KVM capabilities
+  block:
+
+    # handlers will always be triggered by setting the 'changed' condition
+    # of the task to 'true'
+    - name: install kvm and libvirtd packages and register libvirtd service
+      apt:
+        pkg:
+        - bridge-utils
+        - cloud-image-utils
+        - libvirt-bin
+        - qemu
+        - qemu-kvm
+        - virt-manager
+        update_cache: yes
+        state: present
+      changed_when: true
+      notify:
+        - start libvirtd
+        - enable libvirtd
+
+    - name: run libvirtd service handlers
+      meta: flush_handlers
+
+    - name: add nuc user to kvm and libvirt groups
+      user:
+        name: '{{ nuc_user }}'
+        groups: libvirt,libvirt-qemu
+        append: yes
+        state: present
+  become: yes
+
+# named provisioning block - sets default environment variables
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name:
+  block:
+    - name: set VIRSH_DEFAULT_CONNECT_URI
+      lineinfile:
+        dest: /etc/environment
+        regexp: '^VIRSH_DEFAULT_CONNECT_URI'
+        line: 'VIRSH_DEFAULT_CONNECT_URI="qemu:///system"'
+        state: present
+  become: yes
