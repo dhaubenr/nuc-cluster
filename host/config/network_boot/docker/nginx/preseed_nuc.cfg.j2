@@ -107,6 +107,8 @@ d-i preseed/early_command string kill-all-dhcp; netcfg
 d-i preseed/late_command string in-target mkdir /home/{{ user.login }}/.ssh; \
                                 in-target sh -c 'echo "{{ user.ssh_pub_key }}" >> /home/{{ user.login }}/.ssh/authorized_keys'; \
                                 in-target chown -R {{ user.login }}:{{ user.login }} /home/{{ user.login }}/.ssh; \
+                                in-target sh -c 'echo "{{ user.login }} ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown" >> /etc/sudoers.d/{{ user.login }}'; \
+                                in-target chmod 440 /etc/sudoers.d/{{ user.login }}; \
                                 in-target /bin/sed -i "s/XKBMODEL=\"[a-z]*\"/XKBMODEL=\"pc105\"/g" /etc/default/keyboard; \
                                 in-target /bin/sed -i "s/XKBLAYOUT=\"[a-z]*\"/XKBLAYOUT=\"de\"/g" /etc/default/keyboard; \
                                 in-target /bin/sed -i "s/XKBVARIANT=\"[a-z]*\"/XKBVARIANT=\"nodeadkeys\"/g" /etc/default/keyboard; \

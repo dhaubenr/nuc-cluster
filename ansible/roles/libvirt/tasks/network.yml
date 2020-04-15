@@ -7,11 +7,16 @@
   block:
     - name: enable IPv4 package forwarding
       sysctl:
-        name: net.ipv4.ip_forward
+        name: '{{ item }}'
         value: '1'
         sysctl_set: yes
         state: present
         reload: yes
+      loop:
+        - net.ipv4.conf.all.proxy_arp
+        - net.ipv4.ip_forward
+        - net.ipv4.conf.all.forwarding
+        - net.ipv6.conf.all.forwarding
   become: yes
 
 # named provisioning block - configures libvirt networking
