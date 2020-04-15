@@ -14,6 +14,7 @@
         pkg:
         - ruby-libvirt
         - vagrant
+        install_recommends: no
         update_cache: yes
         state: build-dep
 
@@ -25,6 +26,7 @@
         - libxslt-dev
         - ruby-dev
         - zlib1g-dev
+        install_recommends: no
         update_cache: yes
         state: present
   become: yes

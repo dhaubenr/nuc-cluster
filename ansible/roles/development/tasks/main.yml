@@ -17,6 +17,7 @@
         - python3-lxml
         - python3-pip
         - python3-wheel
+        install_recommends: no
         update_cache: yes
         state: present
 
@@ -61,6 +62,7 @@
       apt:
         pkg:
         - git-lfs
+        install_recommends: no
         update_cache: yes
         state: present
   become: yes

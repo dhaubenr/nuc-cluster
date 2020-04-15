@@ -17,6 +17,7 @@
         - qemu
         - qemu-kvm
         - virt-manager
+        install_recommends: no
         update_cache: yes
         state: present
       changed_when: true
