@@ -22,6 +22,7 @@
       apt:
         pkg:
         - kubectl
+        install_recommends: no
         update_cache: yes
         state: present
   become: yes

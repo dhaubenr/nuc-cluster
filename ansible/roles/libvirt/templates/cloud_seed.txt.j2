@@ -1,5 +1,9 @@
 #cloud-config
 password: {{ libvirt_guest_password }}
-chpasswd: { expire: False }
+chpasswd:
+  expire: False
+ssh_authorized_keys:
+  - {{ ansible_controller_authorized_key }}
+  - {{ libvirt_host_authorized_key }}
 ssh_pwauth: True
 hostname: {{ inventory_hostname_short }}-k8s-{{ item }}

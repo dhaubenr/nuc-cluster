@@ -25,6 +25,7 @@
         - xfsprogs
         - zsh
         - zsh-doc
+        install_recommends: no
         update_cache: yes
         state: present
   become: yes
@@ -84,4 +85,5 @@
       apt:
         update_cache: yes
         upgrade: dist
+        state: latest
   become: yes

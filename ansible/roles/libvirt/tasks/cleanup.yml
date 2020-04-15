@@ -68,7 +68,7 @@
         path: '/etc/hosts'
         regexp: '.*{{ inventory_hostname_short }}-k8s-{{ item }}$'
         state: absent
-        backup: yes
+        backup: no
       loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
       become: yes
 

@@ -10,6 +10,24 @@
         libvirt_guest_password: |
           '{{ lookup("password", role_path + "/credentials/" + inventory_hostname_short + "_libvirt_guest length=15 chars=ascii_letters,digits") }}'
 
+    - name: define variable 'libvirt_host_authorized_key'
+      block:
+        - name: lookup remote SSH key on libvirt host {{  inventory_hostname_short }}
+          slurp:
+            src: '/home/{{ nuc_user }}/.ssh/id_rsa.pub'
+          register: authorized_ssh_key_blob
+
+        - name: set variable
+          set_fact:
+            libvirt_host_authorized_key: "{{ authorized_ssh_key_blob['content'] | b64decode }}"
+
+    - name: define variable 'ansible_controller_authorized_key'
+      block:
+        - name: lookup local SSH key and set variable
+          set_fact:
+            ansible_controller_authorized_key: |
+              '{{ lookup("file", lookup("env", "HOME") + "/.ssh/id_rsa.pub") }}'
+
     - name: create cloud image configuration files
       template:
         src: '{{ role_path }}/templates/cloud_seed.txt.j2'
