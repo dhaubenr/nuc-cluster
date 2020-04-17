@@ -1,33 +1,5 @@
 ---
 
-# network device handling
-- name: configure virbr88-dummy device
-  include_tasks: restart_virbr88_dummy.yml
-
-- name: configure virbr88 device
-  include_tasks: restart_virbr88.yml
-
-- name: reload systemd service definitions
-  command:
-    argv:
-      - systemctl
-      - daemon-reload
-  become: yes
-
-- name: load iptables rules
-  command:
-    argv:
-      - iptables-restore
-      - /etc/iptables/rules.v4.virbr88
-  become: yes
-
-- name: restart iptables service
-  service:
-    name: netfilter-persistent
-    state: restarted
-  become: yes
-
-# libvirt handling
 - name: start libvirtd
   service:
     name: libvirtd
@@ -60,3 +32,8 @@
   virt_pool:
     autostart: yes
     name: '{{ libvirt_storage_pool }}'
+
+- name: wait for libvirtd
+  wait_for:
+    timeout: '{{ libvirt_service_start_grace_period }}'
+  delegate_to: localhost

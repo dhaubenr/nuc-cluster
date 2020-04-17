@@ -46,13 +46,6 @@
           set_fact:
             other_host_indices: "{{ groups['nucs'] | map('extract', hostvars, 'host_index') | list | difference(current_host_index_as_list) }}"
 
-    # - name: delete IPv4 routes to other hosts' libvirt networks
-    #   command:
-    #     cmd: 'ip -4 route delete {{ libvirt_network_prefix }}{{ item }}.0/24 via {{ secondary_ip_prefix }}{{ item }}'
-    #   ignore_errors: yes
-    #   loop: '{{ other_host_indices }}'
-    #   become: yes
-
     - name: update /etc/hosts to remove all libvirt guests
       lineinfile:
         path: '/etc/hosts'
