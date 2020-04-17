@@ -6,19 +6,23 @@ Host *
   ServerAliveInterval 30
   ServerAliveCountMax 5
   TCPKeepAlive yes
+
 Host nuc1
-  HostName 192.168.3.11
+  HostName 192.168.3.32
   User johndoe
   Port 22
+
 Host nuc2
-  HostName 192.168.3.12
+  HostName 192.168.3.64
   User johndoe
   Port 22
+
 Host nuc3
-  HostName 192.168.3.13
+  HostName 192.168.3.96
   User johndoe
   Port 22
+
 Host nuc4
-  HostName 192.168.3.14
+  HostName 192.168.3.128
   User johndoe
   Port 22

@@ -1,6 +1,14 @@
 ---
 
 host_index: 4
+network: {
+    ip: 128,
+    ip_range_start: 129,
+    ip_range_end: 158,
+    broadcast: 159,
+    dhcp_range_start: 130
+    dhcp_range_end: 158
+}
 eth0_device_name: eno1
 secondary_disk: /dev/sda
 data_lv_size: 250G

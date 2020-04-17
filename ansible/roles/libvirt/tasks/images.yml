@@ -31,7 +31,6 @@
           register: local_cloud_image
       when: nuc_nginx_info.exists
   run_once: yes
-  tags: [ docker ]
 
 # named provisioning block - prepares Linux cloud image for use with libvirt
 - name: prepare Linux cloud image for libvirt
