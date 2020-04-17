@@ -1,6 +1,14 @@
 ---
 
 host_index: 1
-eth0_device_name: enp0s25
+network: {
+    ip: 32,
+    ip_range_start: 33,
+    ip_range_end: 62,
+    broadcast: 63,
+    dhcp_range_start: 34,
+    dhcp_range_end: 62
+}
+eth0_device_name: eno1
 secondary_disk: /dev/sda
 data_lv_size: 250G

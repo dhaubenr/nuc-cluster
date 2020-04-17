@@ -17,10 +17,12 @@
         pkg:
         - cpu-checker
         - curl
+        - debconf-utils
         - ebtables
         - git
         - net-tools
         - nmap
+        - nvme-cli
         - wget
         - xfsprogs
         - zsh
@@ -55,25 +57,6 @@
         regexp: '^EDITOR'
         line: 'EDITOR=vi'
         state: present
-  become: yes
-
-# named provisioning block - configures the host's secondary ip address
-# run as 'root' via ansible's 'become' directive
-# must be called with option '--ask-become-pass'
-- name: add secondary (static) ip address
-  block:
-
-    # handlers will always be triggered by setting the 'changed' condition
-    # of the task to 'true'
-    - name: configure netplan (Ubuntu)
-      template:
-        src: '{{ role_path }}/templates/02-static.yaml.j2'
-        dest: /etc/netplan/02-static.yaml
-        backup: no
-        mode: '0644'
-      changed_when: true
-      notify:
-        - apply netplan configuration
   become: yes
 
 # named provisioning block - upgrade distribution

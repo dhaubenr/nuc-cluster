@@ -1,16 +1,12 @@
 <network>
-  <name>{{ libvirt_network_name }}</name>
-  <forward mode='nat'>
-    <nat>
-      <port start='1024' end='65535'/>
-    </nat>
-  </forward>
+  <name>{{ libvirt_network_name }}</name>
+  <forward mode='route'/>
   <bridge name='virbr1' stp='on' delay='0'/>
-  <ip address='{{ libvirt_network_prefix }}{{ host_index }}.1' netmask='255.255.255.0'>
+  <ip address='{{ primary_ip_prefix }}.{{ network.range_start }}' netmask='255.255.255.{{ primary_ip_netmask }}'>
     <dhcp>
-      <range start='{{ libvirt_network_prefix }}{{ host_index }}.50' end='{{ libvirt_network_prefix }}{{ host_index }}.254'/>
+      <range start='{{ primary_ip_prefix }}.{{ network.dhcp_range_start }}' end='{{ primary_ip_prefix }}.{{ network.dhcp_range_end }}'/>
 {% for guest_index in range(1, libvirt_guest_range_max | int, 1) %}
-      <host mac='{{ libvirt_network_guest_mac_prefix }}{{ "%02d" | format(host_index | int) }}:{{ "%02d" | format(guest_index | int) }}' name='{{ inventory_hostname_short }}-k8s-{{ guest_index }}' ip='{{ libvirt_network_prefix }}{{ host_index }}.1{{ guest_index }}'/>
+      <host mac='{{ libvirt_network_guest_mac_prefix }}{{ "%02d" | format(host_index | int) }}:{{ "%02d" | format(guest_index | int) }}' name='{{ inventory_hostname_short }}-k8s-{{ guest_index }}' ip='{{ primary_ip_prefix }}.{{ guest_index | int + network.dhcp_range_start | int }}'/>
 {% endfor %}
     </dhcp>
   </ip>

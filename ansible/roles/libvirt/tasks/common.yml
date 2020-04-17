@@ -6,13 +6,23 @@
 - name: add libvirt and KVM capabilities
   block:
 
-    # handlers will always be triggered by setting the 'changed' condition
-    # of the task to 'true'
-    - name: install kvm and libvirtd packages and register libvirtd service
+    - name: configure package iptables-persistent
+      debconf:
+        name: iptables-persistent
+        question: '{{ item }}'
+        value: 'true'
+        vtype: boolean
+      loop:
+        - iptables-persistent/autosave_v4
+        - iptables-persistent/autosave_v6
+
+    - name: install required packages and register libvirtd service
       apt:
         pkg:
         - bridge-utils
         - cloud-image-utils
+        - dnsmasq
+        - iptables-persistent
         - libvirt-bin
         - qemu
         - qemu-kvm
@@ -25,15 +35,29 @@
         - start libvirtd
         - enable libvirtd
 
-    - name: run libvirtd service handlers
-      meta: flush_handlers
-
     - name: add nuc user to kvm and libvirt groups
       user:
         name: '{{ nuc_user }}'
         groups: libvirt,libvirt-qemu
         append: yes
         state: present
+
+    # handlers will always be triggered by setting the 'changed' condition
+    # of the task to 'true'
+    - name: add libvirt socket permissions to libvirt configuration file
+      lineinfile:
+        dest: /etc/libvirt/libvirt.conf
+        regexp: '{{ item.regexp }}'
+        line: '{{ item.line }}'
+        state: present
+      loop:
+        - { regexp: '^#unix_sock_group', line: '#unix_sock_group = "libvirt"' }
+        - { regexp: '^#unix_sock_ro_perms', line: '#unix_sock_ro_perms = "0777"' }
+        - { regexp: '^#unix_sock_rw_perms', line: '#unix_sock_rw_perms = "0770"' }
+      changed_when: true
+
+    - name: run libvirtd service handlers
+      meta: flush_handlers
   become: yes
 
 # named provisioning block - sets default environment variables

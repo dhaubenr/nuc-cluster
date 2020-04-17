@@ -1,8 +1,7 @@
 ---
 
-libvirt_network_prefix: 192.168.20
 libvirt_network_name: kubernetes
-libvirt_network_guest_mac_prefix: '52:54:00:b0:' # 52:54:00:b0:XX:YY
+libvirt_network_guest_mac_prefix: '52:54:00:7e:'
 
 libvirt_storage_directory: storage_pools
 libvirt_storage_pool: kubernetes

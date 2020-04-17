@@ -6,7 +6,7 @@ Compilation of resources (scripts, snippets, instructions) to setup a multi-purp
 
 | Type      | Model      | CPU  | RAM    | DISK1 (NVMe) | DISK2 (SATA SSD) | Wired Ethernet Device | NODE INDEX |
 |-----------|------------|-----:|-------:|-------------:|-----------------:|----------------------:|-----------:|
-| Intel NUC | NUC5i3RYH  | 2(4) | 16GB   | 128GB        | 480GB            | enp0s25               | 1          |
+| Intel NUC | NUC7i5DNHE | 2(4) | 32GB   | 256GB        | 512GB            | eno1                  | 1          |
 | Intel NUC | NUC7i5BNH  | 2(4) | 32GB   | 256GB        | 500GB            | eno1                  | 2          |
 | Intel NUC | NUC8i5BEH  | 4(8) | 32GB   | 256GB        | 512GB            | eno1                  | 3          |
 | Intel NUC | NUC8i3BEH  | 2(4) | 32GB   | 256GB        | 512GB            | eno1                  | 4          |

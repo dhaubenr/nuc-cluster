@@ -17,7 +17,7 @@ ignore client-updates;
 authoritative;
 
 subnet 192.168.3.0 netmask 255.255.255.0 {
-  range 192.168.3.100 192.168.3.200;
+  range 192.168.3.2 192.168.3.254;
   option subnet-mask 255.255.255.0;
   option broadcast-address 192.168.3.255;
   option routers 192.168.3.1;
@@ -47,20 +47,20 @@ subnet 192.168.3.0 netmask 255.255.255.0 {
 
 host nuc1 {
   hardware ethernet {{ mac.nuc1 }};
-  fixed-address 192.168.3.11;
+  fixed-address 192.168.3.32;
 }
 
 host nuc2 {
   hardware ethernet {{ mac.nuc2 }};
-  fixed-address 192.168.3.12;
+  fixed-address 192.168.3.64;
 }
 
 host nuc3 {
   hardware ethernet {{ mac.nuc3 }};
-  fixed-address 192.168.3.13;
+  fixed-address 192.168.3.96;
 }
 
 host nuc4 {
   hardware ethernet {{ mac.nuc4 }};
-  fixed-address 192.168.3.14;
+  fixed-address 192.168.3.128;
 }
