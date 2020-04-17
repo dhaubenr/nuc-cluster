@@ -34,6 +34,7 @@
       notify:
         - start libvirtd
         - enable libvirtd
+        - wait for libvirtd
 
     - name: add nuc user to kvm and libvirt groups
       user:
