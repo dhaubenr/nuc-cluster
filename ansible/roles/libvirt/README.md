@@ -18,15 +18,21 @@
   - each NUC has one primary wired ethernet device `eno1` (device name depends on actual NUC hardware)
   - each NUC is assigned to one of the _free_ host subnet blocks (excluding the reserved blocks)
   - NUC primary ethernet device has one assigned IP address:
-    - 192.168.3.XX (_static_ DHCP, assigned by DHCP server running on MacOSX workstation using the NUC's ethernet device MAC address)
-    - `XX` refers to the starting address of the assigned subnet block
+    - 192.168.3.XXX (_static_ DHCP, assigned by DHCP server running on MacOSX workstation using the NUC's ethernet device MAC address)
+    - `XXX` refers to the starting address of the assigned subnet block
   - two libvirt networks per NUC:
     - default (mode `nat`, bridge `virbr0`, subnet `192.168.122.0/24`, installation default)
-    - kubernetes (mode `routed`, bridge `virbr1`, subnet `192.168.3.XX/27`, created by Ansible role `libvirt_guests`):
+    - kubernetes (mode `routed`, bridge `virbr1`, subnet `192.168.3.XXX/27`, created by Ansible role `libvirt_guests`):
       - supports DHCP with IP range according to the mapping listed above
       - supports _static_ DHCP addresses for guests based on their MAC addresses:
         - MAC address `52:54:00:7e:0X:0Y` -> guest name `nucX-k8s-Y`
   - each libvirt guest uses network `kubernetes` only
+
+## Maximum supported hosts and guests
+
+- theoretically the above setup enables the use of the following hosts and guest domains:
+  - 6 Intel NUCs
+  - 28 libvirt guests per Intel NUC
 
 ## How it's configured
 

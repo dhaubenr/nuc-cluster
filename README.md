@@ -4,12 +4,12 @@ Compilation of resources (scripts, snippets, instructions) to setup a multi-purp
 
 ## Hardware overview
 
-| Type      | Model      | CPU  | RAM    | DISK1 (NVMe) | DISK2 (SATA SSD) | Wired Ethernet Device | NODE INDEX |
-|-----------|------------|-----:|-------:|-------------:|-----------------:|----------------------:|-----------:|
-| Intel NUC | NUC7i5DNHE | 2(4) | 32GB   | 256GB        | 512GB            | eno1                  | 1          |
-| Intel NUC | NUC7i5BNH  | 2(4) | 32GB   | 256GB        | 500GB            | eno1                  | 2          |
-| Intel NUC | NUC8i5BEH  | 4(8) | 32GB   | 256GB        | 512GB            | eno1                  | 3          |
-| Intel NUC | NUC8i3BEH  | 2(4) | 32GB   | 256GB        | 512GB            | eno1                  | 4          |
+| Type      | Model      | CPU  | RAM    | DISK1 (NVMe) | DISK2 (SATA SSD) | Wired Ethernet Device | NODE INDEX | SUBNET           |
+|-----------|------------|-----:|-------:|-------------:|-----------------:|----------------------:|-----------:|-----------------:|
+| Intel NUC | NUC7i5DNHE | 2(4) | 32GB   | 256GB        | 512GB            | eno1                  | 1          | 192.168.3.32/27  |
+| Intel NUC | NUC7i5BNH  | 2(4) | 32GB   | 256GB        | 500GB            | eno1                  | 2          | 192.168.3.64/27  |
+| Intel NUC | NUC8i5BEH  | 4(8) | 32GB   | 256GB        | 512GB            | eno1                  | 3          | 192.168.3.96/27  |
+| Intel NUC | NUC8i3BEH  | 2(4) | 32GB   | 256GB        | 512GB            | eno1                  | 4          | 192.168.3.128/27 |
 
 - Netgear Gigabit Ethernet Switch GS305E (managed, 5 ports)
 - UPerfect Portable HDMI Display (7 inch, resolution: 1024*600)
@@ -50,10 +50,10 @@ wakenuc <nuc_index_number>
 To be able to address individual Intel NUCs with a logical network name, configure your workstation's `/etc/hosts` file by adding the following entries:
 
 ```text
-192.168.3.11   nuc1
-192.168.3.12   nuc2
-192.168.3.13   nuc3
-192.168.3.14   nuc4
+192.168.3.32   nuc1
+192.168.3.64   nuc2
+192.168.3.96   nuc3
+192.168.3.128  nuc4
 ```
 
 To be able to SSH into the Intel NUC's operating system you can use the `host/config/ssh_config` file included in this repository as an example to adapt your workstation's `$HOME/.ssh/config` file.
