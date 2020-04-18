@@ -3,9 +3,10 @@
 # common variables for all 'nucs'
 go_version: 1.14.2
 vagrant_version: 2.2.7
+prometheus_node_exporter_version: 0.18.1
 
 primary_ip_prefix: 192.168.3 # matches MacOSX internet sharing address
-primary_ip_netmask: 224 # 8 subnets in 192.168.3, prefix /27
+primary_ip_netmask: 224 # 8 subnets in 192.168.3, mask /27
 
 data_vg_name: data-vg
 data_lv_name: data_1

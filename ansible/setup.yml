@@ -5,6 +5,8 @@
       tags: [ common ]
     - role: development
       tags: [ development ]
+    - role: monitoring
+      tags: [ monitoring ]
     - role: docker
       tags: [ docker ]
     - role: vagrant

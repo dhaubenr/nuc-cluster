@@ -18,8 +18,8 @@
     <key>RunAtLoad</key>
     <true/>
     <key>StandardErrorPath</key>
-    <string>/tmp/org.dhaubenr.nat-pf.stderr</string>
+    <string>/usr/local/var/log/nat-pf.err.log</string>
     <key>StandardOutPath</key>
-    <string>/tmp/org.dhaubenr.nat-pf.stdout</string>
+    <string>/usr/local/var/log/nat-pf.log</string>
 </dict>
 </plist>
