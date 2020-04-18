@@ -3,10 +3,10 @@
 ## How it works
 
 - topology:
-  - MacOSX host provided once class-c subnet:
+  - MacOSX host provides one class-c subnet:
     - 192.168.3.0/24
     - 192.168.3.1 is assigned to the external USB ethernet adapter `USB 10/100/1000 LAN`
-  - host subnet is divided into 8 blocks, using the subnet prefix `/27`:
+  - host subnet is divided into 8 blocks, using the subnet mask `/27`:
     - 192.168.3.0/27   (192.168.3.0   - 192.168.3.31)  [ reserved for MacOSX host ]
     - 192.168.3.32/27  (192.168.3.32  - 192.168.3.63)
     - 192.168.3.64/27  (192.168.3.64  - 192.168.3.95)

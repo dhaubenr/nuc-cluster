@@ -1,0 +1,47 @@
+---
+
+# named provisioning block - finish system setup
+# run as 'root' via ansible's 'become' directive
+# must be called with option '--ask-become-pass'
+- name: install and configure prometheus-node-exporter
+  block:
+    - name: create user node_exporter
+      user:
+        name: node_exporter
+        create_home: no
+        system: yes
+        shell: /usr/sbin/nologin
+        state: present
+
+    - name: download prometheus-node-exporter
+      get_url:
+        url: |
+          https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_node_exporter_version }}/node_exporter-{{ prometheus_node_exporter_version }}.linux-amd64.tar.gz
+        dest: /root/node_exporter-{{ prometheus_node_exporter_version }}.linux-amd64.tar.gz
+        mode: '0440'
+        timeout: 120
+
+    - name: install prometheus-node-exporter
+      unarchive:
+        src: /root/node_exporter-{{ prometheus_node_exporter_version }}.linux-amd64.tar.gz
+        dest: /usr/local/bin
+        owner: node_exporter
+        group: node_exporter
+        extra_opts:
+          - '--strip=1'
+          - '--no-anchored'
+          - '--add-file'
+          - 'node_exporter'
+        remote_src: yes
+
+    - name: install and start prometheus-node-exporter service
+      copy:
+        src: '{{ role_path }}/files/node_exporter.service'
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - start node_exporter
+        - enable node_exporter
+  become: yes

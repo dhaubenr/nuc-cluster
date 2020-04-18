@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 60s
+
+scrape_configs:
+  - job_name: 'nucs'
+    static_configs:
+    - targets:
+{%- for endpoint in endpoints %}
+      - '{{ endpoint.ip }}:{{ endpoint.port }}'
+{%- endfor %}
