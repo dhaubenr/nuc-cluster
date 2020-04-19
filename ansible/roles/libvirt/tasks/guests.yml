@@ -53,24 +53,24 @@
         database: passwd
         key: libvirt-qemu
 
-    - name: create libvirt guest base volume configuration files
+    - name: create libvirt guest system volume configuration file
       template:
-        src: '{{ role_path }}/templates/guest_base_volume.xml.j2'
-        dest: '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
+        src: '{{ role_path }}/templates/guest_system_volume.xml.j2'
+        dest: '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}_system.xml'
         owner: '{{ nuc_user }}'
         group: '{{ nuc_user }}'
         mode: '0644'
       loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
 
-    - name: create libvirt guest base volumes
+    - name: create libvirt guest system volume
       command:
         argv:
           - virsh
           - vol-create
           - '{{ libvirt_storage_pool }}'
-          - '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
+          - '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}_system.xml'
         chdir: /tmp/
-        creates: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2'
+        creates: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item }}_system.qcow2'
       loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
 
     - name: handle libvirt guest data volumes
@@ -107,31 +107,6 @@
 # named provisioning block - creates libvirt guests (aka domains)
 - name: create libvirt guests
   block:
-    - name: get user and group information from passwd database
-      getent:
-        database: passwd
-        key: libvirt-qemu
-
-    - name: create libvirt guest base volume configuration files
-      template:
-        src: '{{ role_path }}/templates/guest_base_volume.xml.j2'
-        dest: '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
-        owner: '{{ nuc_user }}'
-        group: '{{ nuc_user }}'
-        mode: '0644'
-      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
-
-    - name: create libvirt guest base volumes
-      command:
-        argv:
-          - virsh
-          - vol-create
-          - '{{ libvirt_storage_pool }}'
-          - '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
-        chdir: /tmp/
-        creates: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2'
-      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
-
     - name: create libvirt guest domains
       virt:
         command: define
