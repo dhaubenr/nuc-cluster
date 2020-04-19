@@ -25,17 +25,17 @@
 
     - name: derive lvm mapper device name from volume group {{ data_vg_name }}
       set_fact:
-        data_vg_mapper: "{{ data_vg_name | regex_replace('-', '--') }}"
+        data_vg_mapper: '{{ data_vg_name | regex_replace("-", "--") }}"'
 
     - name: create filesystem on logical volume {{ data_lv_name }}
       filesystem:
         fstype: xfs
-        dev: /dev/{{ data_vg_name }}/{{ data_lv_name }}
+        dev: '/dev/{{ data_vg_name }}/{{ data_lv_name }}'
 
     - name: mount filesystem on logical volume {{ data_lv_name }}
       mount:
         path: '{{ data_lv_mount_point }}'
-        src: /dev/mapper/{{ data_vg_mapper }}-{{ data_lv_name }}
+        src: '/dev/mapper/{{ data_vg_mapper }}-{{ data_lv_name }}'
         fstype: xfs
         opts: rw,relatime,attr2,inode64,noquota
         state: mounted

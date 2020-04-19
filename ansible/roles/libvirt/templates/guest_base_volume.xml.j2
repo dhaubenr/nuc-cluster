@@ -2,7 +2,7 @@
   <name>{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2</name>
   <source>
   </source>
-  <capacity unit='G'>10</capacity>
+  <capacity unit='G'>{{ guest_base_volume_capacity }}</capacity>
   <target>
     <path>{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2</path>
     <format type='qcow2'></format>

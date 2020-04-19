@@ -1,0 +1,15 @@
+<volume type='file'>
+  <name>{{ inventory_hostname_short }}_k8s_{{ item[0] }}_{{ item[1] }}G_{{ "%02d" | format(iter_idx % (guest_data_volume_capacities | unique | count) | int) }}.qcow2</name>
+  <source>
+  </source>
+  <capacity unit='G'>{{ item[1] }}</capacity>
+  <target>
+    <path>{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item[0] }}_{{ item[1] }}G_{{ "%02d" | format(iter_idx % (guest_data_volume_capacities | unique | count) | int) }}.qcow2</path>
+    <format type='qcow2'></format>
+    <permissions>
+      <mode>0600</mode>
+      <owner>{{ getent_passwd['libvirt-qemu'][1] }}</owner>
+      <group>{{ getent_passwd['libvirt-qemu'][2] }}</group>
+    </permissions>
+  </target>
+</volume>

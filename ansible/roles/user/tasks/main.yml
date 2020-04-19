@@ -6,8 +6,7 @@
 - name: configure user {{ nuc_user }}
   block:
     - name: install oh-my-zsh
-      command: |
-        git clone -c core.autocrlf=input --depth=1 https://github.com/robbyrussell/oh-my-zsh.git ~{{ nuc_user }}/.oh-my-zsh
+      command: 'git clone -c core.autocrlf=input --depth=1 https://github.com/robbyrussell/oh-my-zsh.git ~{{ nuc_user }}/.oh-my-zsh'
       args:
         creates: '~{{ nuc_user }}/.oh-my-zsh'
       tags:
@@ -46,5 +45,4 @@
         generate_ssh_key: yes
 
     - name: install vagrant plugins
-      command: |
-        vagrant plugin install nugrant vagrant-libvirt vagrant-timezone
+      command: vagrant plugin install nugrant vagrant-libvirt vagrant-timezone

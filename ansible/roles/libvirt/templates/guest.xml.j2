@@ -17,14 +17,9 @@
   <clock offset='utc'/>
   <devices>
     <emulator>/usr/bin/kvm-spice</emulator>
-    <disk type='file' device='disk'>
+    <disk type='volume' device='disk'>
       <driver name='qemu' type='qcow2' cache='none'/>
-      <source file='{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2'/>
-      <backingStore type='file' index='1'>
-        <format type='qcow2'/>
-        <source file='{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ guest_os_cloud_image }}.qcow2'/>
-        <backingStore/>
-      </backingStore>
+      <source pool='{{ libvirt_storage_pool }}' volume='{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2'/>
       <target dev='vda' bus='virtio'/>
       <alias name='virtio-disk0'/>
     </disk>

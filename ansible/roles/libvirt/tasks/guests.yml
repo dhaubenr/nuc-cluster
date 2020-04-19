@@ -7,8 +7,7 @@
   block:
     - name: generate libvirt guest password
       set_fact:
-        libvirt_guest_password: |
-          '{{ lookup("password", role_path + "/credentials/" + inventory_hostname_short + "_libvirt_guest length=15 chars=ascii_letters,digits") }}'
+        libvirt_guest_password: '{{ lookup("password", role_path + "/credentials/" + inventory_hostname_short + "_libvirt_guest length=15 chars=ascii_letters,digits") }}'
 
     - name: define variable 'libvirt_host_authorized_key'
       block:
@@ -19,14 +18,13 @@
 
         - name: set variable
           set_fact:
-            libvirt_host_authorized_key: "{{ authorized_ssh_key_blob['content'] | b64decode }}"
+            libvirt_host_authorized_key: '{{ authorized_ssh_key_blob["content"] | b64decode }}'
 
     - name: define variable 'ansible_controller_authorized_key'
       block:
         - name: lookup local SSH key and set variable
           set_fact:
-            ansible_controller_authorized_key: |
-              '{{ lookup("file", lookup("env", "HOME") + "/.ssh/id_rsa.pub") }}'
+            ansible_controller_authorized_key: '{{ lookup("file", lookup("env", "HOME") + "/.ssh/id_rsa.pub") }}'
 
     - name: create cloud image configuration files
       template:
@@ -47,6 +45,65 @@
       loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
       become: yes
 
+# named provisioning block - creates libvirt guest volumes
+- name: create libvirt guest volumes
+  block:
+    - name: get user and group information from passwd database
+      getent:
+        database: passwd
+        key: libvirt-qemu
+
+    - name: create libvirt guest base volume configuration files
+      template:
+        src: '{{ role_path }}/templates/guest_base_volume.xml.j2'
+        dest: '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
+        owner: '{{ nuc_user }}'
+        group: '{{ nuc_user }}'
+        mode: '0644'
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: create libvirt guest base volumes
+      command:
+        argv:
+          - virsh
+          - vol-create
+          - '{{ libvirt_storage_pool }}'
+          - '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
+        chdir: /tmp/
+        creates: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item }}.qcow2'
+      loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
+
+    - name: handle libvirt guest data volumes
+      block:
+        - name: ensure the guest data volume capacities definition is correct
+          assert:
+            that:
+              - (guest_data_volume_capacities | count) % (guest_data_volume_capacities | unique | count) == 0
+
+        - name: create libvirt guest data volume configuration files
+          template:
+            src: '{{ role_path }}/templates/guest_data_volume.xml.j2'
+            dest: '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item[0] }}_{{ item[1] }}G_{{ iter_idx % (guest_data_volume_capacities | unique | count) }}.xml'
+            owner: '{{ nuc_user }}'
+            group: '{{ nuc_user }}'
+            mode: '0644'
+          loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list | product(guest_data_volume_capacities) | list }}'
+          loop_control:
+            index_var: iter_idx
+
+        - name: create libvirt guest data volumes
+          command:
+            argv:
+              - virsh
+              - vol-create
+              - '{{ libvirt_storage_pool }}'
+              - '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item[0] }}_{{ item[1] }}G_{{ iter_idx % (guest_data_volume_capacities | unique | count) }}.xml'
+            chdir: /tmp/
+            creates: '{{ data_lv_mount_point }}/{{ libvirt_storage_directory }}/{{ libvirt_storage_pool }}/{{ inventory_hostname_short }}_k8s_{{ item[0] }}_{{ item[1] }}G_{{ "%02d" | format(iter_idx % (guest_data_volume_capacities | unique | count) | int) }}.qcow2'
+          loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list | product(guest_data_volume_capacities) | list }}'
+          loop_control:
+            index_var: iter_idx
+
 # named provisioning block - creates libvirt guests (aka domains)
 - name: create libvirt guests
   block:
@@ -55,16 +112,16 @@
         database: passwd
         key: libvirt-qemu
 
-    - name: create libvirt guest volume configuration files
+    - name: create libvirt guest base volume configuration files
       template:
-        src: '{{ role_path }}/templates/guest_volume.xml.j2'
+        src: '{{ role_path }}/templates/guest_base_volume.xml.j2'
         dest: '/tmp/volume_{{ inventory_hostname_short }}_k8s_{{ item }}.xml'
         owner: '{{ nuc_user }}'
         group: '{{ nuc_user }}'
         mode: '0644'
       loop: '{{ range(1, libvirt_guest_range_max | int, 1) | list }}'
 
-    - name: create libvirt guest volumes
+    - name: create libvirt guest base volumes
       command:
         argv:
           - virsh
