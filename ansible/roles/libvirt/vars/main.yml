@@ -11,6 +11,7 @@ libvirt_service_start_grace_period: 60
 guest_os_cloud_image: CentOS-7-x86_64-GenericCloud
 guest_os_cloud_image_url: https://cloud.centos.org/centos/7/images/{{ guest_os_cloud_image }}.qcow2.xz
 guest_os_cloud_image_cache_url: http://192.168.3.1:8080/{{ guest_os_cloud_image }}.qcow2.xz
-guest_os_cloud_image_size: 10G
+guest_system_volume_capacity: 10
+guest_data_volume_capacities: [ 5, 5, 5, 10, 10, 10, 20, 20, 20 ]
 
 libvirt_guest_range_max: '{{ libvirt_guests_per_host + 1 }}'

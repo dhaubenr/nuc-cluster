@@ -118,9 +118,9 @@ d-i preseed/late_command string in-target mkdir /home/{{ user.login }}/.ssh; \
                                 in-target /usr/sbin/update-locale LC_TIME=en_US.UTF-8 LC_MESSAGES=POSIX; \
                                 in-target /usr/bin/apt-get purge -y netplan.io; \
                                 in-target /bin/rm -rf /etc/netplan; \
+                                in-target sh -c 'echo "GRUB_GFXPAYLOAD_LINUX=\"keep\"" >> /etc/default/grub'; \
                                 in-target sh -c 'echo "GRUB_RECORDFAIL_TIMEOUT=0" >> /etc/default/grub'; \
                                 in-target /bin/sed -i "s/#GRUB_GFXMODE=[0-9a-z]*/GRUB_GFXMODE=800x600/g" /etc/default/grub; \
-                                in-target /bin/sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT=\"[a-z]*\"/GRUB_CMDLINE_LINUX_DEFAULT=\"nomodeset\"/g" /etc/default/grub; \
                                 in-target /bin/sed -i "s/GRUB_CMDLINE_LINUX=\"[0-9a-zA-Z=.]*/& netcfg\/do_not_use_netplan=true/g" /etc/default/grub; \
                                 in-target /usr/sbin/update-grub
 ubiquity ubiquity/summary note

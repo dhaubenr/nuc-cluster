@@ -48,7 +48,7 @@
 
         - name: compute list of other host indices
           set_fact:
-            other_host_indices: "{{ groups['nucs'] | map('extract', hostvars, 'host_index') | list | difference(current_host_index_as_list) }}"
+            other_host_indices: '{{ groups["nucs"] | map("extract", hostvars, "host_index") | list | difference(current_host_index_as_list) }}'
 
     - name: update /etc/hosts to include all libvirt guests
       lineinfile:
