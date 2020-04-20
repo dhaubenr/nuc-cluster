@@ -13,3 +13,4 @@ data_lv_name: data_1
 data_lv_mount_point: /mnt/data
 
 libvirt_guests_per_host: 3
+libvirt_data_volumes_per_guest: 3
