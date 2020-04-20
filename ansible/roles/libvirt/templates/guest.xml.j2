@@ -23,10 +23,10 @@
       <target dev='vda' bus='virtio'/>
       <alias name='virtio-disk0'/>
     </disk>
-{% for capacity in guest_data_volume_capacities %}
+{% for volume_index in range(0, libvirt_data_volumes_per_guest, 1) %}
     <disk type='volume' device='disk'>
       <driver name='qemu' type='qcow2' cache='none'/>
-      <source pool='{{ libvirt_storage_pool }}' volume='{{ inventory_hostname_short }}_k8s_{{ item }}_{{ capacity }}G_{{ "%02d" | format(loop.index0 % (guest_data_volume_capacities | unique | count) | int) }}.qcow2'/>
+      <source pool='{{ libvirt_storage_pool }}' volume='{{ inventory_hostname_short }}_k8s_{{ item }}_{{ "%02d" | format(volume_index | int) }}.qcow2'/>
       <target dev='vd{{ (loop.index + 97) | chr }}' bus='virtio'/>
       <alias name='virtio-disk{{ loop.index }}'/>
     </disk>
